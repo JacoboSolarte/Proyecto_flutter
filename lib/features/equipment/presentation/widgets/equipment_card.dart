@@ -1,0 +1,139 @@
+import 'package:flutter/material.dart';
+import '../../../equipment/domain/entities/equipment.dart';
+import 'equipment_status_chip.dart';
+
+class EquipmentCard extends StatelessWidget {
+  final Equipment equipment;
+  final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const EquipmentCard({
+    super.key,
+    required this.equipment,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.precision_manufacturing, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            equipment.name,
+                            style: t.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        EquipmentStatusChip(status: equipment.status),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        if (equipment.brand != null)
+                          _InfoChip(icon: Icons.business, label: 'Marca: ${equipment.brand}'),
+                        if (equipment.model != null)
+                          _InfoChip(icon: Icons.layers, label: 'Modelo: ${equipment.model}'),
+                        if (equipment.serial != null)
+                          _InfoChip(icon: Icons.qr_code_2, label: 'Serie: ${equipment.serial}'),
+                        if (equipment.location != null)
+                          _InfoChip(icon: Icons.place, label: 'Ubicación: ${equipment.location}'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _ActionsMenu(onEdit: onEdit, onDelete: onDelete),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: scheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: scheme.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionsMenu extends StatelessWidget {
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  const _ActionsMenu({this.onEdit, this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'Más acciones',
+      onSelected: (value) async {
+        switch (value) {
+          case 'edit':
+            onEdit?.call();
+            break;
+          case 'delete':
+            onDelete?.call();
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Editar'))),
+        const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete), title: Text('Eliminar'))),
+      ],
+      icon: const Icon(Icons.more_vert),
+    );
+  }
+}
