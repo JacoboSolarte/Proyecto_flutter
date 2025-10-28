@@ -24,6 +24,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   String? _selectedStatus;
   Timer? _debounce;
   int _currentIndex = 0;
+  bool _isSearchOpen = false;
 
   @override
   void initState() {
@@ -66,28 +67,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por nombre, marca, modelo, serie o ubicación',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Limpiar',
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _triggerSearch();
-                        },
-                      ),
-              ),
-              onChanged: (_) => _debouncedSearch(),
-              onSubmitted: (_) => _triggerSearch(),
-            ),
-          ),
+          const SizedBox(height: 4),
           SizedBox(
             height: 48,
             child: ListView(
@@ -185,43 +165,90 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          switch (index) {
-            case 0:
-              // Home: mover al inicio de la lista
-              _scrollController.animateTo(
-                0,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-              break;
-            case 1:
-              // Actualizar lista
-              ref
-                  .read(equipmentListControllerProvider.notifier)
-                  .loadInitial(
-                    query: EquipmentQuery(
-                      search: _searchController.text.trim(),
-                      status: _selectedStatus,
+      bottomNavigationBar: BottomAppBar(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: Row(
+              mainAxisAlignment:
+                  _isSearchOpen ? MainAxisAlignment.start : MainAxisAlignment.spaceEvenly,
+              children: [
+                if (_isSearchOpen)
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: 'Buscar por nombre, marca, modelo, serie o ubicación',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_searchController.text.isNotEmpty)
+                              IconButton(
+                                tooltip: 'Limpiar',
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _triggerSearch();
+                                },
+                              ),
+                            IconButton(
+                              tooltip: 'Cerrar búsqueda',
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                setState(() => _isSearchOpen = false);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      onChanged: (_) => _debouncedSearch(),
+                      onSubmitted: (_) => _triggerSearch(),
                     ),
-                  );
-              break;
-            case 2:
-              // Perfil
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
-              );
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.refresh), label: 'Actualizar'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-        ],
+                  )
+                else ...[
+                  IconButton(
+                    tooltip: 'Inicio',
+                    icon: const Icon(Icons.home),
+                    onPressed: () {
+                      if (_scrollController.hasClients) {
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    },
+                  ),
+                  IconButton(
+                    tooltip: 'Refrescar',
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      _triggerSearch();
+                    },
+                  ),
+                  IconButton(
+                    tooltip: 'Buscar',
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      setState(() => _isSearchOpen = true);
+                    },
+                  ),
+                  IconButton(
+                    tooltip: 'Perfil',
+                    icon: const Icon(Icons.person),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
