@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
+
+Future<String?> _fetchLatestImageUrl(String equipmentId) async {
+  try {
+    final client = Supabase.instance.client;
+    final files = await client.storage.from('task-images').list(path: 'equipment/$equipmentId');
+    if (files.isEmpty) return null;
+    DateTime _parse(dynamic v) {
+      if (v == null) return DateTime.fromMillisecondsSinceEpoch(0);
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
+    }
+    files.sort((a, b) => _parse(b.createdAt).compareTo(_parse(a.createdAt)));
+    final latest = files.first;
+    final path = 'equipment/$equipmentId/${latest.name}';
+    final url = client.storage.from('task-images').getPublicUrl(path);
+    return url;
+  } catch (_) {
+    return null;
+  }
+}
 
 class EquipmentDetailPage extends ConsumerWidget {
   final String id;
@@ -47,6 +68,26 @@ class _DetailContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(eq.name, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
+          FutureBuilder<String?>(
+            future: _fetchLatestImageUrl(eq.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator()));
+              }
+              final url = snapshot.data;
+              if (url == null || url.isEmpty) return const SizedBox.shrink();
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  url,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
+          ),
           const SizedBox(height: 12),
           Expanded(
             child: ListView.separated(
