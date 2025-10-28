@@ -23,6 +23,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   final _searchController = TextEditingController();
   String? _selectedStatus;
   Timer? _debounce;
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -54,22 +55,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
       appBar: AppBar(
         title: const Text('Equipos biomédicos'),
         actions: [
-          IconButton(
-            tooltip: 'Actualizar',
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref
-                .read(equipmentListControllerProvider.notifier)
-                .loadInitial(query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus)),
-          ),
-          IconButton(
-            tooltip: 'Perfil',
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
-              );
-            },
-          ),
           IconButton(
             tooltip: 'Salir',
             icon: const Icon(Icons.logout),
@@ -199,6 +184,44 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           }
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+          switch (index) {
+            case 0:
+              // Home: mover al inicio de la lista
+              _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+              break;
+            case 1:
+              // Actualizar lista
+              ref
+                  .read(equipmentListControllerProvider.notifier)
+                  .loadInitial(
+                    query: EquipmentQuery(
+                      search: _searchController.text.trim(),
+                      status: _selectedStatus,
+                    ),
+                  );
+              break;
+            case 2:
+              // Perfil
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.refresh), label: 'Actualizar'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+        ],
       ),
     );
   }
