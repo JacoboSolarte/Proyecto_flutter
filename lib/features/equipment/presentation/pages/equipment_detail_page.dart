@@ -8,7 +8,7 @@ import 'equipment_form_page.dart';
 Future<String?> _fetchLatestImageUrl(String equipmentId) async {
   try {
     final client = Supabase.instance.client;
-    final files = await client.storage.from('task-images').list(path: 'equipment/$equipmentId');
+    final files = await client.storage.from('images').list(path: 'equipment/$equipmentId');
     if (files.isEmpty) return null;
     DateTime _parse(dynamic v) {
       if (v == null) return DateTime.fromMillisecondsSinceEpoch(0);
@@ -18,7 +18,7 @@ Future<String?> _fetchLatestImageUrl(String equipmentId) async {
     files.sort((a, b) => _parse(b.createdAt).compareTo(_parse(a.createdAt)));
     final latest = files.first;
     final path = 'equipment/$equipmentId/${latest.name}';
-    final url = client.storage.from('task-images').getPublicUrl(path);
+    final url = client.storage.from('images').getPublicUrl(path);
     return url;
   } catch (_) {
     return null;

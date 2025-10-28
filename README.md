@@ -121,6 +121,56 @@ Opcionales: agrega unit tests a casos de uso y repositorios si deseas.
 - Asegúrate de tener ejecutadas las migraciones y de que las políticas RLS correspondan a tus necesidades.
 - Si usas Storage para fotos/documentos del equipo, puedes ampliar el repositorio y la entidad `Equipment`.
 
+## Imágenes (Storage)
+- Bucket: `images` (público) con estructura `images/equipment/<equipment_id>/<timestamp>_<filename>`.
+- Dependencias: `image_picker`, `file_picker`, `mime`.
+- Android: agregar permisos en `android/app/src/main/AndroidManifest.xml`:
+  - `<uses-permission android:name="android.permission.INTERNET" />`
+  - `<uses-permission android:name="android.permission.CAMERA" />`
+- iOS: agregar claves en `ios/Runner/Info.plist`:
+  - `NSCameraUsageDescription` = `Se requiere acceso a la cámara para tomar fotos del equipo.`
+  - `NSPhotoLibraryUsageDescription` = `Se requiere acceso a la biblioteca para seleccionar imágenes del equipo.`
+
+### Políticas SQL (Supabase Storage)
+Ejecuta estas políticas en el editor SQL para el esquema `storage.objects` (bucket `images`). El bucket es público para lectura/listado, pero la subida requiere usuario autenticado:
+
+```
+-- Lectura y listado (público)
+create policy "public can read images"
+on storage.objects for select
+to public
+using (bucket_id = 'images');
+
+-- Insertar (subir archivos) para usuarios autenticados
+create policy "authenticated can insert images"
+on storage.objects for insert
+to authenticated
+with check (bucket_id = 'images');
+
+-- Actualizar (si usas upsert y el archivo ya existe)
+create policy "authenticated can update images"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'images')
+with check (bucket_id = 'images');
+
+-- Borrar (opcional)
+create policy "authenticated can delete images"
+on storage.objects for delete
+to authenticated
+using (bucket_id = 'images');
+```
+
+### Flujo en la app
+- En crear/editar equipo, puedes seleccionar imagen desde archivos o tomar foto (web/móvil según soporte).
+- Tras crear/guardar, si hay imagen seleccionada, se sube a `images` bajo `equipment/<id>/...`.
+- En el detalle del equipo y en la edición, se muestra la última imagen subida usando `getPublicUrl` (al ser bucket público).
+- La app verifica sesión antes de subir; si no hay sesión, se muestra un mensaje y no se realiza la subida.
+
+### Consejos
+- Evita colisiones de nombre de archivo usando la convención con timestamp (implementado).
+- Si deseas un bucket privado, cambia la lectura a URLs firmadas (`createSignedUrl`) y ajusta `select` a `authenticated`.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

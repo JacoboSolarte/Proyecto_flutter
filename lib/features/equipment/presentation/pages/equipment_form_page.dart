@@ -280,10 +280,19 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
 
   Future<void> _uploadImage({required String equipmentId}) async {
     try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Debes iniciar sesión para subir imágenes')),
+          );
+        }
+        return;
+      }
       if (_imageBytes == null) return;
       final path = 'equipment/$equipmentId/${DateTime.now().millisecondsSinceEpoch}_${_imageName ?? 'image'}';
       await Supabase.instance.client.storage
-          .from('task-images')
+          .from('images')
           .uploadBinary(
             path,
             _imageBytes!,
@@ -298,13 +307,13 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
       }
     }
   }
-}
+
   Future<void> _loadExistingImageUrl() async {
     try {
       final id = widget.existing?.id;
       if (id == null) return;
       final client = Supabase.instance.client;
-      final files = await client.storage.from('task-images').list(path: 'equipment/$id');
+      final files = await client.storage.from('images').list(path: 'equipment/$id');
       if (files.isEmpty) return;
       DateTime _parse(dynamic v) {
         if (v == null) return DateTime.fromMillisecondsSinceEpoch(0);
@@ -314,7 +323,7 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
       files.sort((a, b) => _parse(b.createdAt).compareTo(_parse(a.createdAt)));
       final latest = files.first;
       final path = 'equipment/$id/${latest.name}';
-      final url = client.storage.from('task-images').getPublicUrl(path);
+      final url = client.storage.from('images').getPublicUrl(path);
       if (mounted) {
         setState(() {
           _existingImageUrl = url;
@@ -324,3 +333,4 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
       // ignore errors silently for minimal UI impact
     }
   }
+}
