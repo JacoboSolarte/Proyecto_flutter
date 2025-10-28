@@ -51,3 +51,5 @@
 	<string>Necesitamos acceso a tus fotos para adjuntar imágenes de equipos.</string>
 </dict>
 </plist>
+  <key>NSCameraUsageDescription</key>
+  <string>Se requiere acceso a la cámara para escanear códigos QR de equipos.</string>

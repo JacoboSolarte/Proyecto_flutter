@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:file_saver/file_saver.dart';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
@@ -47,6 +51,44 @@ class _DetailContent extends StatelessWidget {
   final Equipment eq;
   const _DetailContent({required this.eq});
 
+  Future<void> _downloadQr(BuildContext context) async {
+    try {
+      final painter = QrPainter(
+        data: 'equipment:${eq.id}',
+        version: QrVersions.auto,
+        gapless: true,
+        color: const Color(0xFF000000),
+        emptyColor: const Color(0xFFFFFFFF),
+      );
+      final byteData = await painter.toImageData(1024, format: ui.ImageByteFormat.png);
+      final bytes = byteData?.buffer.asUint8List();
+      if (bytes == null) {
+        throw Exception('No se pudo generar la imagen del QR');
+      }
+      final sanitizedName = eq.name
+          .trim()
+          .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
+          .replaceAll(RegExp(r'\s+'), '_');
+      await FileSaver.instance.saveFile(
+        name: 'equipment_${sanitizedName}_${eq.id}',
+        bytes: bytes,
+        ext: 'png',
+        mimeType: MimeType.png,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('QR descargado correctamente')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al descargar QR: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = <MapEntry<String, String?>>[
@@ -89,6 +131,28 @@ class _DetailContent extends StatelessWidget {
             },
           ),
           const SizedBox(height: 12),
+          Card(
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Código QR', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: QrImageView(
+                      data: 'equipment:${eq.id}',
+                      version: QrVersions.auto,
+                      size: 180,
+                      backgroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           Expanded(
             child: ListView.separated(
               itemCount: items.length,
@@ -119,6 +183,12 @@ class _DetailContent extends StatelessWidget {
                     Navigator.pop(context);
                   }
                 },
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.download),
+                label: const Text('Descargar QR'),
+                onPressed: () => _downloadQr(context),
               ),
             ],
           ),

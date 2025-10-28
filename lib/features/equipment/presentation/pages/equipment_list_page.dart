@@ -7,6 +7,7 @@ import 'dart:async';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
 import 'equipment_detail_page.dart';
+import 'qr_scan_page.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -226,6 +227,15 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                     icon: const Icon(Icons.refresh),
                     onPressed: () {
                       _triggerSearch();
+                    },
+                  ),
+                  IconButton(
+                    tooltip: 'Escanear',
+                    icon: const Icon(Icons.camera_alt),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const QrScanPage()),
+                      );
                     },
                   ),
                   IconButton(
