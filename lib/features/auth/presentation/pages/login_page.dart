@@ -73,6 +73,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   _emailController.text.trim(),
                                   _passwordController.text.trim(),
                                 );
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
                           } catch (_) {}
                         }
                       },

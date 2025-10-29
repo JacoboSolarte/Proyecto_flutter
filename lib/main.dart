@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/config/supabase_config.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/welcome_page.dart';
 import 'features/equipment/presentation/pages/equipment_list_page.dart';
 
 void main() async {
@@ -119,7 +120,7 @@ class AuthGate extends StatelessWidget {
         if (session != null) {
           return const EquipmentListPage();
         }
-        return const LoginPage();
+        return const WelcomePage();
       },
     );
   }
