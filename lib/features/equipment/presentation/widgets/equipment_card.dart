@@ -99,8 +99,9 @@ class _InfoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
-    // Limitar el ancho para permitir salto de línea sin overflow en móvil
-    final maxChipWidth = (screenWidth - 160).clamp(180.0, screenWidth);
+    // Limitar el ancho para permitir salto de línea sin overflow en móvil.
+    // Damos más espacio en pantallas pequeñas para que el texto pueda envolver varias líneas.
+    final maxChipWidth = (screenWidth - 64).clamp(220.0, screenWidth);
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxChipWidth),
       child: Container(
@@ -111,17 +112,18 @@ class _InfoChip extends StatelessWidget {
           border: Border.all(color: scheme.outlineVariant),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, size: 16, color: scheme.onSurfaceVariant),
             const SizedBox(width: 6),
-            Flexible(
+            Expanded(
               child: Text(
                 label,
                 style: TextStyle(color: scheme.onSurfaceVariant),
                 softWrap: true,
-                maxLines: 3,
+                // Permitimos que se expanda verticalmente sin cortar contenido.
+                maxLines: null,
                 overflow: TextOverflow.visible,
               ),
             ),
