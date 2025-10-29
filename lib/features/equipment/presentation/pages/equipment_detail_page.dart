@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:file_saver/file_saver.dart';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
@@ -14,12 +13,12 @@ Future<String?> _fetchLatestImageUrl(String equipmentId) async {
     final client = Supabase.instance.client;
     final files = await client.storage.from('images').list(path: 'equipment/$equipmentId');
     if (files.isEmpty) return null;
-    DateTime _parse(dynamic v) {
+    DateTime parseDate(dynamic v) {
       if (v == null) return DateTime.fromMillisecondsSinceEpoch(0);
       if (v is DateTime) return v;
       return DateTime.tryParse(v.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
     }
-    files.sort((a, b) => _parse(b.createdAt).compareTo(_parse(a.createdAt)));
+    files.sort((a, b) => parseDate(b.createdAt).compareTo(parseDate(a.createdAt)));
     final latest = files.first;
     final path = 'equipment/$equipmentId/${latest.name}';
     final url = client.storage.from('images').getPublicUrl(path);
@@ -57,8 +56,8 @@ class _DetailContent extends StatelessWidget {
         data: 'equipment:${eq.id}',
         version: QrVersions.auto,
         gapless: true,
-        color: const Color(0xFF000000),
-        emptyColor: const Color(0xFFFFFFFF),
+        eyeStyle: const QrEyeStyle(color: Color(0xFF000000)),
+        dataModuleStyle: const QrDataModuleStyle(color: Color(0xFF000000)),
       );
       final byteData = await painter.toImageData(1024, format: ui.ImageByteFormat.png);
       final bytes = byteData?.buffer.asUint8List();

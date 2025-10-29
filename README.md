@@ -171,6 +171,26 @@ using (bucket_id = 'images');
 - Evita colisiones de nombre de archivo usando la convención con timestamp (implementado).
 - Si deseas un bucket privado, cambia la lectura a URLs firmadas (`createSignedUrl`) y ajusta `select` a `authenticated`.
 
+## IA: Análisis de imagen (sin Supabase)
+- Botón en el formulario de equipos: `Analizar con IA`.
+- No requiere sesión ni funciones de Supabase para el análisis.
+ - Si `GOOGLE_API_KEY` está definido en `.env` del cliente, se usa IA para generar un párrafo técnico y ayudar a rellenar campos.
+ - Si no hay API key, el análisis se desactiva y se muestra un aviso en la app.
+
+### Variables de entorno
+- Desarrollo: coloca `GOOGLE_API_KEY` en `.env` de Flutter (cargado por `flutter_dotenv`). Ejemplo:
+  - Archivo: `.env`
+  - Contenido: `GOOGLE_API_KEY=<tu-clave>`
+ - Producción: si no quieres exponer la clave en el cliente, deja vacío `GOOGLE_API_KEY`; el análisis local quedará desactivado. Opcionalmente, implementa un backend propio para realizar el análisis de forma segura.
+
+### Uso en Flutter
+- Toma o selecciona una imagen en `EquipmentFormPage` o desde la lista.
+ - Pulsa `Analizar con IA` para ver los resultados. La vista muestra la fuente: `IA`.
+
+### Cambios en BD
+- No requiere cambios en las tablas existentes.
+ - Opcional: puedes crear una tabla de auditoría (`analysis_events`) si deseas registrar invocaciones.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

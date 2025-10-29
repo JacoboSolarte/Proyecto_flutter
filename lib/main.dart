@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: colorScheme.surfaceVariant,
+          fillColor: colorScheme.surfaceContainerHighest,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: colorScheme.outlineVariant),
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
         listTileTheme: const ListTileThemeData(contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
         chipTheme: ChipThemeData(
           selectedColor: colorScheme.primaryContainer,
-          backgroundColor: colorScheme.surfaceVariant,
+          backgroundColor: colorScheme.surfaceContainerHighest,
           labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           side: BorderSide(color: colorScheme.outlineVariant),

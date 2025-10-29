@@ -13,7 +13,7 @@ class EquipmentStatusChip extends StatelessWidget {
       'fuera_de_servicio': Colors.red,
     };
     final Color base = colors[status] ?? scheme.primary;
-    final Color bg = base.withOpacity(0.15);
+    final Color bg = base.withValues(alpha: 0.15);
     final Color fg = base;
     String label = switch (status) {
       'operativo' => 'Operativo',
@@ -25,7 +25,7 @@ class EquipmentStatusChip extends StatelessWidget {
       label: Text(label),
       labelStyle: TextStyle(color: fg, fontWeight: FontWeight.w600),
       backgroundColor: bg,
-      side: BorderSide(color: fg.withOpacity(0.4)),
+      side: BorderSide(color: fg.withValues(alpha: 0.4)),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     );
   }
