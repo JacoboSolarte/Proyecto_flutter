@@ -105,6 +105,51 @@ for delete
 to authenticated
 using (auth.uid() = created_by);
 
+### Tabla `profiles`
+-- Perfil extendido por usuario (una fila por usuario)
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  full_name text,
+  phone text,
+  organization text,
+  department text,
+  role text,
+  job_title text,
+  document_id text,
+  address text,
+  avatar_url text,
+  bio text,
+  updated_at timestamptz not null default now()
+);
+
+-- Activar RLS para profiles
+alter table public.profiles enable row level security;
+
+-- El usuario solo puede leer su propio perfil
+drop policy if exists "profiles select own" on public.profiles;
+create policy "profiles select own"
+on public.profiles
+for select
+to authenticated
+using (id = auth.uid());
+
+-- El usuario solo puede insertar su propia fila (si no existe)
+drop policy if exists "profiles insert own" on public.profiles;
+create policy "profiles insert own"
+on public.profiles
+for insert
+to authenticated
+with check (id = auth.uid());
+
+-- El usuario solo puede actualizar su propia fila
+drop policy if exists "profiles update own" on public.profiles;
+create policy "profiles update own"
+on public.profiles
+for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+
 ## Funcionalidades
 - Registro e inicio de sesión con email y contraseña.
 - Pantalla principal con lista paginada e infinite scroll.
@@ -112,6 +157,7 @@ using (auth.uid() = created_by);
 - Búsqueda por nombre, marca, modelo, serie, ubicación.
 - Detalle de equipo.
 - Perfil de usuario: ver y editar nombre, cerrar sesión.
+ - Perfiles extendidos: teléfono, organización, departamento, rol, cargo, documento, dirección, bio.
 - Validaciones mínimas (campos obligatorios) y localización en español.
 
 ## Tests

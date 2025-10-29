@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/profile_providers.dart';
 import '../widgets/auth_layout.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -15,12 +16,28 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _organizationController = TextEditingController();
+  final _departmentController = TextEditingController();
+  final _roleController = TextEditingController();
+  final _jobTitleController = TextEditingController();
+  final _documentIdController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _bioController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
+    _organizationController.dispose();
+    _departmentController.dispose();
+    _roleController.dispose();
+    _jobTitleController.dispose();
+    _documentIdController.dispose();
+    _addressController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -76,6 +93,72 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 return null;
               },
             ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Teléfono (opcional)',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _organizationController,
+              decoration: const InputDecoration(
+                labelText: 'Organización (opcional)',
+                prefixIcon: Icon(Icons.business_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _departmentController,
+              decoration: const InputDecoration(
+                labelText: 'Departamento (opcional)',
+                prefixIcon: Icon(Icons.apartment_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _roleController,
+              decoration: const InputDecoration(
+                labelText: 'Rol (opcional)',
+                prefixIcon: Icon(Icons.security_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _jobTitleController,
+              decoration: const InputDecoration(
+                labelText: 'Cargo/Puesto (opcional)',
+                prefixIcon: Icon(Icons.badge_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _documentIdController,
+              decoration: const InputDecoration(
+                labelText: 'Documento de identidad (opcional)',
+                prefixIcon: Icon(Icons.credit_card_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(
+                labelText: 'Dirección (opcional)',
+                prefixIcon: Icon(Icons.home_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _bioController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Bio/Notas (opcional)',
+                prefixIcon: Icon(Icons.notes_outlined),
+              ),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: isLoading
@@ -89,6 +172,29 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 _emailController.text.trim(),
                                 _passwordController.text.trim(),
                                 _nameController.text.trim(),
+                              );
+                          // Guardar perfil extendido
+                          await ref.read(profileControllerProvider.notifier).upsertCurrent(
+                                fullName: _nameController.text.trim(),
+                                phone: _phoneController.text.trim().isEmpty
+                                    ? null
+                                    : _phoneController.text.trim(),
+                                organization: _organizationController.text.trim().isEmpty
+                                    ? null
+                                    : _organizationController.text.trim(),
+                                department: _departmentController.text.trim().isEmpty
+                                    ? null
+                                    : _departmentController.text.trim(),
+                                role: _roleController.text.trim().isEmpty ? null : _roleController.text.trim(),
+                                jobTitle:
+                                    _jobTitleController.text.trim().isEmpty ? null : _jobTitleController.text.trim(),
+                                documentId: _documentIdController.text.trim().isEmpty
+                                    ? null
+                                    : _documentIdController.text.trim(),
+                                address: _addressController.text.trim().isEmpty
+                                    ? null
+                                    : _addressController.text.trim(),
+                                bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
                               );
                           if (mounted) Navigator.pop(context);
                         } catch (_) {}
