@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
     final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
     return MaterialApp(
       title: 'Biomedic',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,
