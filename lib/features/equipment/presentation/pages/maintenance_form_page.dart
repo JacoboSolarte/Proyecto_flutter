@@ -1,0 +1,279 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/maintenance.dart';
+import '../providers/maintenance_providers.dart';
+import '../providers/equipment_providers.dart';
+import '../../domain/entities/equipment.dart';
+import '../../domain/usecases/update_equipment.dart';
+
+class MaintenanceFormPage extends ConsumerStatefulWidget {
+  final String equipmentId;
+  const MaintenanceFormPage({super.key, required this.equipmentId});
+
+  @override
+  ConsumerState<MaintenanceFormPage> createState() => _MaintenanceFormPageState();
+}
+
+class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  DateTime _maintenanceDate = DateTime.now();
+  String _maintenanceType = 'preventivo';
+  String _finalStatus = 'operativo';
+  DateTime? _nextMaintenanceDate;
+  final TextEditingController _descriptionCtrl = TextEditingController();
+  final TextEditingController _partsCtrl = TextEditingController();
+  final TextEditingController _responsibleCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _descriptionCtrl.dispose();
+    _partsCtrl.dispose();
+    _responsibleCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate(BuildContext context, DateTime initial, void Function(DateTime) onPicked) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year - 10),
+      lastDate: DateTime(now.year + 10),
+    );
+    if (picked != null) {
+      onPicked(picked);
+      setState(() {});
+    }
+  }
+
+  Future<void> _save(BuildContext context, Equipment eq) async {
+    if (!_formKey.currentState!.validate()) return;
+    final createMaint = ref.read(createMaintenanceUseCaseProvider);
+    final updater = ref.read(updateEquipmentUseCaseProvider);
+
+    final maint = Maintenance(
+      id: 'new',
+      equipmentId: eq.id,
+      maintenanceDate: _maintenanceDate,
+      maintenanceType: _maintenanceType,
+      description: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
+      partsUsed: _partsCtrl.text.trim().isEmpty ? null : _partsCtrl.text.trim(),
+      responsible: _responsibleCtrl.text.trim().isEmpty ? null : _responsibleCtrl.text.trim(),
+      finalStatus: _finalStatus,
+      nextMaintenanceDate: _nextMaintenanceDate,
+    );
+
+    try {
+      await createMaint(maint);
+      final updatedEq = Equipment(
+        id: eq.id,
+        name: eq.name,
+        brand: eq.brand,
+        model: eq.model,
+        serial: eq.serial,
+        location: eq.location,
+        status: _finalStatus,
+        purchaseDate: eq.purchaseDate,
+        lastMaintenanceDate: _maintenanceDate,
+        nextMaintenanceDate: _nextMaintenanceDate ?? eq.nextMaintenanceDate,
+        vendor: eq.vendor,
+        warrantyExpireDate: eq.warrantyExpireDate,
+        notes: eq.notes,
+        createdAt: eq.createdAt,
+        updatedAt: eq.updatedAt,
+        createdBy: eq.createdBy,
+      );
+      await updater(eq.id, updatedEq);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mantenimiento registrado')));
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ' + e.toString())));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = ref.watch(equipmentDetailProvider(widget.equipmentId));
+    return detail.when(
+      loading: () => const Scaffold(
+        appBar: _FormAppBar(),
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, st) => Scaffold(
+        appBar: const _FormAppBar(),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text('Error cargando equipo: ' + e.toString()),
+        ),
+      ),
+      data: (eq) => Scaffold(
+        appBar: const _FormAppBar(),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(eq.name, style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Wrap(spacing: 8, runSpacing: 8, children: [
+                          Chip(label: Text('ID: ${eq.id}')),
+                          if (eq.location != null) Chip(label: Text('Ubicación: ${eq.location}')),
+                          Chip(label: Text('Estado actual: ${eq.status}')),
+                        ]),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _DateField(
+                          label: 'Fecha del mantenimiento',
+                          value: _maintenanceDate,
+                          onPick: () => _pickDate(context, _maintenanceDate, (d) => _maintenanceDate = d),
+                        ),
+                        const SizedBox(height: 12),
+                        _DropdownField(
+                          label: 'Tipo de mantenimiento',
+                          value: _maintenanceType,
+                          items: const ['preventivo', 'correctivo'],
+                          onChanged: (v) => setState(() => _maintenanceType = v ?? 'preventivo'),
+                        ),
+                        const SizedBox(height: 12),
+                        _TextField(label: 'Descripción de la actividad realizada', controller: _descriptionCtrl, maxLines: 3),
+                        const SizedBox(height: 12),
+                        _TextField(label: 'Repuestos utilizados', controller: _partsCtrl),
+                        const SizedBox(height: 12),
+                        _TextField(label: 'Responsable', controller: _responsibleCtrl),
+                        const SizedBox(height: 12),
+                        _DropdownField(
+                          label: 'Estado final del equipo',
+                          value: _finalStatus,
+                          items: const ['operativo', 'requiere_seguimiento', 'fuera_de_servicio'],
+                          onChanged: (v) => setState(() => _finalStatus = v ?? 'operativo'),
+                        ),
+                        const SizedBox(height: 12),
+                        _DateField(
+                          label: 'Próxima fecha programada de mantenimiento (opcional)',
+                          value: _nextMaintenanceDate,
+                          onPick: () => _pickDate(context, _nextMaintenanceDate ?? DateTime.now(), (d) => _nextMaintenanceDate = d),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.save),
+                            label: const Text('Guardar mantenimiento'),
+                            onPressed: () => _save(context, eq),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FormAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _FormAppBar();
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(title: const Text('Registro de Mantenimiento'));
+  }
+}
+
+class _DateField extends StatelessWidget {
+  final String label;
+  final DateTime? value;
+  final VoidCallback onPick;
+  const _DateField({required this.label, required this.value, required this.onPick});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = value == null
+        ? 'No definido'
+        : '${value!.year}-${value!.month.toString().padLeft(2, '0')}-${value!.day.toString().padLeft(2, '0')}';
+    return Row(
+      children: [
+        Expanded(child: Text(label)),
+        TextButton.icon(onPressed: onPick, icon: const Icon(Icons.calendar_today), label: Text(text)),
+      ],
+    );
+  }
+}
+
+class _DropdownField extends StatelessWidget {
+  final String label;
+  final String value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+  const _DropdownField({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Text(label)),
+        const SizedBox(width: 12),
+        DropdownButton<String>(
+          value: value,
+          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+class _TextField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final int maxLines;
+  const _TextField({required this.label, required this.controller, this.maxLines = 1});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      validator: (v) {
+        if (label == 'Responsable' && (v == null || v.trim().isEmpty)) {
+          return 'Ingrese el responsable';
+        }
+        return null;
+      },
+    );
+  }
+}

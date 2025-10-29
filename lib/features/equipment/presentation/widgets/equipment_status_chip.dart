@@ -11,6 +11,7 @@ class EquipmentStatusChip extends StatelessWidget {
       'operativo': Colors.green,
       'mantenimiento': Colors.orange,
       'fuera_de_servicio': Colors.red,
+      'requiere_seguimiento': Colors.amber,
     };
     final Color base = colors[status] ?? scheme.primary;
     final Color bg = base.withValues(alpha: 0.15);
@@ -19,6 +20,7 @@ class EquipmentStatusChip extends StatelessWidget {
       'operativo' => 'Operativo',
       'mantenimiento' => 'Mantenimiento',
       'fuera_de_servicio' => 'Fuera de servicio',
+      'requiere_seguimiento' => 'Requiere seguimiento',
       _ => status,
     };
     return Chip(

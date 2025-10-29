@@ -140,13 +140,18 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
                     child: Text('Imagen actual', style: Theme.of(context).textTheme.titleSmall),
                   ),
                   const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      _existingImageUrl!,
-                      height: 160,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Card(
+                      elevation: 4,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Image.network(
+                        _existingImageUrl!,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -176,26 +181,31 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
                 ),
                 if (_imageBytes != null) ...[
                   const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                  child: Image.memory(
-                    _imageBytes!,
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) {
-                      return Container(
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Card(
+                      elevation: 4,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Image.memory(
+                        _imageBytes!,
                         height: 160,
                         width: double.infinity,
-                        color: Colors.black12,
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'Vista previa no soportada en web. Se analizará igualmente.',
-                          textAlign: TextAlign.center,
-                        ),
-                      );
-                    },
-                  ),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stack) {
+                          return Container(
+                            height: 160,
+                            width: double.infinity,
+                            color: Colors.black12,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'Vista previa no soportada en web. Se analizará igualmente.',
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(

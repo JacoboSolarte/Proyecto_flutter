@@ -15,6 +15,8 @@ import 'dart:async';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
 import 'equipment_detail_page.dart';
+import 'equipment_header_page.dart';
+import 'maintenance_form_page.dart';
 import 'qr_scan_page.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -111,6 +113,25 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                 builder: (_) => EquipmentDetailPage(id: eq.id),
                               ),
                             );
+                          },
+                          onHeader: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
+                              ),
+                            );
+                          },
+                          onAddMaintenance: () async {
+                            final result = await Navigator.of(context).push<bool?>(
+                              MaterialPageRoute(
+                                builder: (_) => MaintenanceFormPage(equipmentId: eq.id),
+                              ),
+                            );
+                            if (result == true && mounted) {
+                              ref.read(equipmentListControllerProvider.notifier).loadInitial(
+                                    query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                  );
+                            }
                           },
                           onEdit: () async {
                             final updated = await Navigator.of(context).push<Equipment?>(

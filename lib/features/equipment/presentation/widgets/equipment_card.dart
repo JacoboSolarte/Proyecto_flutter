@@ -7,6 +7,8 @@ class EquipmentCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onHeader;
+  final VoidCallback? onAddMaintenance;
 
   const EquipmentCard({
     super.key,
@@ -14,6 +16,8 @@ class EquipmentCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onHeader,
+    this.onAddMaintenance,
   });
 
   @override
@@ -74,7 +78,7 @@ class EquipmentCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _ActionsMenu(onEdit: onEdit, onDelete: onDelete),
+              _ActionsMenu(onEdit: onEdit, onDelete: onDelete, onHeader: onHeader, onAddMaintenance: onAddMaintenance),
             ],
           ),
         ),
@@ -113,7 +117,9 @@ class _InfoChip extends StatelessWidget {
 class _ActionsMenu extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-  const _ActionsMenu({this.onEdit, this.onDelete});
+  final VoidCallback? onHeader;
+  final VoidCallback? onAddMaintenance;
+  const _ActionsMenu({this.onEdit, this.onDelete, this.onHeader, this.onAddMaintenance});
 
   @override
   Widget build(BuildContext context) {
@@ -127,9 +133,17 @@ class _ActionsMenu extends StatelessWidget {
           case 'delete':
             onDelete?.call();
             break;
+          case 'header':
+            onHeader?.call();
+            break;
+          case 'maintenance':
+            onAddMaintenance?.call();
+            break;
         }
       },
       itemBuilder: (context) => [
+        const PopupMenuItem(value: 'header', child: ListTile(leading: Icon(Icons.badge), title: Text('Encabezado'))),
+        const PopupMenuItem(value: 'maintenance', child: ListTile(leading: Icon(Icons.build_circle), title: Text('Registrar mantenimiento'))),
         const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Editar'))),
         const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete), title: Text('Eliminar'))),
       ],
