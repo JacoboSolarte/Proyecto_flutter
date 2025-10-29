@@ -22,7 +22,7 @@ final listMaintenancesForEquipmentUseCaseProvider = Provider<ListMaintenancesFor
   return ListMaintenancesForEquipmentUseCase(repo);
 });
 
-final maintenancesByEquipmentProvider = FutureProvider.family<List<Maintenance>, String>((ref, equipmentId) {
+final maintenancesByEquipmentProvider = FutureProvider.autoDispose.family<List<Maintenance>, String>((ref, equipmentId) {
   final uc = ref.watch(listMaintenancesForEquipmentUseCaseProvider);
   return uc(equipmentId);
 });

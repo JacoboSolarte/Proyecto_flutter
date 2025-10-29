@@ -21,6 +21,7 @@ import 'qr_scan_page.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import 'analysis_result_page.dart';
+import '../providers/maintenance_providers.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -89,6 +90,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                 _buildStatusChip('operativo', 'Operativo'),
                 _buildStatusChip('mantenimiento', 'Mantenimiento'),
                 _buildStatusChip('fuera_de_servicio', 'Fuera de servicio'),
+                _buildStatusChip('requiere_seguimiento', 'Requiere seguimiento'),
               ],
             ),
           ),
@@ -115,6 +117,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                             );
                           },
                           onHeader: () {
+                            // Invalida cache del historial para forzar recarga al abrir encabezado
+                            ref.invalidate(maintenancesByEquipmentProvider(eq.id));
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
@@ -128,6 +132,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                               ),
                             );
                             if (result == true && mounted) {
+                              // Invalida historial para que el encabezado muestre el nuevo mantenimiento
+                              ref.invalidate(maintenancesByEquipmentProvider(eq.id));
                               ref.read(equipmentListControllerProvider.notifier).loadInitial(
                                     query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
                                   );

@@ -131,6 +131,7 @@ class _DetailContent extends StatelessWidget {
     final t = s.toLowerCase();
     if (t.contains('operativo')) return Colors.green.shade100;
     if (t.contains('mantenimiento')) return Colors.amber.shade100;
+    if (t.contains('requiere_seguimiento')) return Colors.amber.shade100;
     return Colors.red.shade100;
   }
 

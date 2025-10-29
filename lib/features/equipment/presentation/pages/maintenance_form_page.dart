@@ -33,13 +33,19 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
     super.dispose();
   }
 
-  Future<void> _pickDate(BuildContext context, DateTime initial, void Function(DateTime) onPicked) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    DateTime initial,
+    void Function(DateTime) onPicked, {
+    DateTime? minDate,
+    DateTime? maxDate,
+  }) async {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(now.year - 10),
-      lastDate: DateTime(now.year + 10),
+      firstDate: minDate ?? DateTime(now.year - 10),
+      lastDate: maxDate ?? DateTime(now.year + 10),
     );
     if (picked != null) {
       onPicked(picked);
@@ -49,6 +55,12 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
 
   Future<void> _save(BuildContext context, Equipment eq) async {
     if (!_formKey.currentState!.validate()) return;
+    if (_nextMaintenanceDate != null && _nextMaintenanceDate!.isBefore(_maintenanceDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La próxima fecha no puede ser anterior a la fecha del mantenimiento')),
+      );
+      return;
+    }
     final createMaint = ref.read(createMaintenanceUseCaseProvider);
     final updater = ref.read(updateEquipmentUseCaseProvider);
 
@@ -174,7 +186,12 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                         _DateField(
                           label: 'Próxima fecha programada de mantenimiento (opcional)',
                           value: _nextMaintenanceDate,
-                          onPick: () => _pickDate(context, _nextMaintenanceDate ?? DateTime.now(), (d) => _nextMaintenanceDate = d),
+                          onPick: () => _pickDate(
+                            context,
+                            _nextMaintenanceDate ?? _maintenanceDate,
+                            (d) => _nextMaintenanceDate = d,
+                            minDate: _maintenanceDate,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(

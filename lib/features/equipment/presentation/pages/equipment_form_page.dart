@@ -112,6 +112,7 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
                   items: const [
                     DropdownMenuItem(value: 'operativo', child: Text('Operativo')),
                     DropdownMenuItem(value: 'mantenimiento', child: Text('Mantenimiento')),
+                    DropdownMenuItem(value: 'requiere_seguimiento', child: Text('Requiere seguimiento')),
                     DropdownMenuItem(value: 'fuera_de_servicio', child: Text('Fuera de servicio')),
                   ],
                   onChanged: (v) => setState(() => _status = v ?? 'operativo'),
