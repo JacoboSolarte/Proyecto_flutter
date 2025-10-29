@@ -28,7 +28,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     return AuthLayout(
       title: 'Recuperar contraseña',
       subtitle: 'Te enviaremos un enlace para restablecerla.',
-      icon: Icons.key_rounded,
       child: Form(
         key: _formKey,
         child: Column(

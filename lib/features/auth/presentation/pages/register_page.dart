@@ -48,7 +48,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     return AuthLayout(
       title: 'Crear cuenta',
       subtitle: 'Regístrate para comenzar a gestionar tus equipos.',
-      icon: Icons.person_add_alt_1,
       child: Form(
         key: _formKey,
         child: Column(

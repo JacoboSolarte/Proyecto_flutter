@@ -25,7 +25,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.teal);
+    // Cambiamos el esquema de color a un azul para un look móvil limpio
+    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
     return MaterialApp(
       title: 'Biomedic',
       theme: ThemeData(

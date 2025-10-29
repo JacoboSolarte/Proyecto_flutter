@@ -12,7 +12,6 @@ class WelcomePage extends StatelessWidget {
     return AuthLayout(
       title: 'Bienvenido',
       subtitle: 'Gestiona equipos biomédicos de forma simple y profesional.',
-      icon: Icons.health_and_safety,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

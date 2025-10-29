@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class AuthLayout extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
   final Widget child;
   final List<Widget>? bottomActions;
 
@@ -11,7 +10,6 @@ class AuthLayout extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.child,
     this.bottomActions,
   });
@@ -46,21 +44,8 @@ class AuthLayout extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      Container(
-                        height: 160,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [scheme.primaryContainer, scheme.secondaryContainer],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: Icon(icon, size: 72, color: scheme.onPrimaryContainer),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+                      // Diseño minimalista sin imagen/ilustración, centrado
+                      const SizedBox(height: 8),
                       Card(
                         elevation: 1,
                         child: Padding(
@@ -77,21 +62,9 @@ class AuthLayout extends StatelessWidget {
                 ),
               ),
             );
+            // En escritorio mantén el contenido centrado sin columna lateral
             if (isWide) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                  ),
-                  Expanded(child: content),
-                ],
-              );
+              return Center(child: content);
             }
             return content;
           },

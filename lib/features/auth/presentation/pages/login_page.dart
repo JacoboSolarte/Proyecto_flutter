@@ -31,7 +31,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return AuthLayout(
       title: 'Iniciar sesión',
       subtitle: 'Accede para gestionar tus equipos biomédicos.',
-      icon: Icons.lock_open_rounded,
       child: Form(
         key: _formKey,
         child: Column(
