@@ -8,4 +8,6 @@ abstract class AuthRepository {
   Future<void> signIn({required String email, required String password});
   Future<void> signOut();
   Future<void> updateProfile({String? name, String? email});
+  Future<void> requestPasswordReset({required String email, String? redirectTo});
+  Future<void> resetPassword({required String newPassword});
 }

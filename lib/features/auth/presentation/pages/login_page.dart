@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../presentation/providers/auth_providers.dart';
 import 'register_page.dart';
+import 'forgot_password_page.dart';
 import '../widgets/auth_layout.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -67,7 +68,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+                  );
+                },
                 child: const Text('Olvidé mi contraseña'),
               ),
             ),

@@ -7,6 +7,7 @@ import 'core/config/supabase_config.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/welcome_page.dart';
 import 'features/equipment/presentation/pages/equipment_list_page.dart';
+import 'features/auth/presentation/pages/reset_password_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,8 +116,16 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        final session = snapshot.data?.session ??
-            Supabase.instance.client.auth.currentSession;
+        final authState = snapshot.data;
+        // En Flutter Web, Supabase coloca los parámetros en el fragmento (#) de la URL
+        // por ejemplo: #access_token=...&type=recovery
+        // Usamos este indicador para forzar la pantalla de restablecimiento
+        final uri = Uri.base;
+        final isRecoveryFromUrl = uri.fragment.contains('type=recovery');
+        if (authState?.event == AuthChangeEvent.passwordRecovery || isRecoveryFromUrl) {
+          return const ResetPasswordPage();
+        }
+        final session = authState?.session ?? Supabase.instance.client.auth.currentSession;
         if (session != null) {
           return const EquipmentListPage();
         }

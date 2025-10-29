@@ -53,4 +53,14 @@ class AuthRepositoryImpl implements AuthRepository {
       ),
     );
   }
+
+  @override
+  Future<void> requestPasswordReset({required String email, String? redirectTo}) async {
+    await _client.auth.resetPasswordForEmail(email, redirectTo: redirectTo);
+  }
+
+  @override
+  Future<void> resetPassword({required String newPassword}) async {
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
 }
