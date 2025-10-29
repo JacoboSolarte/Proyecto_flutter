@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/profile_providers.dart';
+import '../../../../core/ui/transitions.dart';
 import '../widgets/auth_layout.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -48,6 +49,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     return AuthLayout(
       title: 'Crear cuenta',
       subtitle: 'Regístrate para comenzar a gestionar tus equipos.',
+      primaryBackground: true,
       child: Form(
         key: _formKey,
         child: Column(

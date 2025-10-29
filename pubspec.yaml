@@ -47,6 +47,7 @@ dependencies:
   mobile_scanner: ^3.5.7
   file_saver: ^0.2.9
   http: ^1.2.0
+  google_fonts: ^6.3.2
 
 dev_dependencies:
   flutter_test:

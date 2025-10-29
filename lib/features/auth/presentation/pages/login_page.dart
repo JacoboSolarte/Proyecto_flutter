@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../presentation/providers/auth_providers.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
+import '../../../../core/ui/transitions.dart';
 import '../widgets/auth_layout.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -31,6 +32,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return AuthLayout(
       title: 'Iniciar sesión',
       subtitle: 'Accede para gestionar tus equipos biomédicos.',
+      primaryBackground: true,
       child: Form(
         key: _formKey,
         child: Column(
@@ -68,9 +70,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
-                  );
+                  Navigator.of(context).push(fadeRoute(const ForgotPasswordPage()));
                 },
                 child: const Text('Olvidé mi contraseña'),
               ),
@@ -109,9 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const Text('¿No tienes cuenta? '),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const RegisterPage()),
-                    );
+                    Navigator.of(context).push(fadeRoute(const RegisterPage()));
                   },
                   child: const Text('Regístrate'),
                 ),

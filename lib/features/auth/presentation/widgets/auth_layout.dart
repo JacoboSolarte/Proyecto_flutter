@@ -5,6 +5,7 @@ class AuthLayout extends StatelessWidget {
   final String subtitle;
   final Widget child;
   final List<Widget>? bottomActions;
+  final bool primaryBackground;
 
   const AuthLayout({
     super.key,
@@ -12,6 +13,7 @@ class AuthLayout extends StatelessWidget {
     required this.subtitle,
     required this.child,
     this.bottomActions,
+    this.primaryBackground = false,
   });
 
   @override
@@ -19,6 +21,7 @@ class AuthLayout extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
+      backgroundColor: primaryBackground ? scheme.primary : null,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -34,13 +37,20 @@ class AuthLayout extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         title,
-                        style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryBackground ? scheme.onPrimary : null,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         subtitle,
-                        style: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: primaryBackground
+                              ? scheme.onPrimary.withOpacity(0.85)
+                              : scheme.onSurfaceVariant,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
