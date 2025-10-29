@@ -236,11 +236,29 @@ class _DateField extends StatelessWidget {
     final text = value == null
         ? 'No definido'
         : '${value!.year}-${value!.month.toString().padLeft(2, '0')}-${value!.day.toString().padLeft(2, '0')}';
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        TextButton.icon(onPressed: onPick, icon: const Icon(Icons.calendar_today), label: Text(text)),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 360;
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(onPressed: onPick, icon: const Icon(Icons.calendar_today), label: Text(text)),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: Text(label)),
+            TextButton.icon(onPressed: onPick, icon: const Icon(Icons.calendar_today), label: Text(text)),
+          ],
+        );
+      },
     );
   }
 }
@@ -259,16 +277,36 @@ class _DropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        const SizedBox(width: 12),
-        DropdownButton<String>(
-          value: value,
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-          onChanged: onChanged,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 360;
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label),
+              const SizedBox(height: 6),
+              DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+                items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                onChanged: onChanged,
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: Text(label)),
+            const SizedBox(width: 12),
+            DropdownButton<String>(
+              value: value,
+              items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: onChanged,
+            ),
+          ],
+        );
+      },
     );
   }
 }

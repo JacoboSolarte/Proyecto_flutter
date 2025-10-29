@@ -157,14 +157,16 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                Row(
+                // Botones responsivos para evitar overflow horizontal en móviles
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     ElevatedButton.icon(
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Seleccionar imagen'),
                       onPressed: _pickFromFiles,
                     ),
-                    const SizedBox(width: 12),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.photo_camera),
                       label: const Text('Tomar foto'),

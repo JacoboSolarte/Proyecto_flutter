@@ -140,16 +140,32 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          SizedBox(width: 180, child: Text(label)),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 360;
+          if (isNarrow) {
+            // En pantallas estrechas apila el contenido para evitar recortes
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(value),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              SizedBox(width: 180, child: Text(label)),
+              Expanded(
+                child: Text(
+                  value,
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

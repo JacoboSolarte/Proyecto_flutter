@@ -54,8 +54,9 @@ class EquipmentCard extends StatelessWidget {
                           child: Text(
                             equipment.name,
                             style: t.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
+                            softWrap: true,
                           ),
                         ),
                         EquipmentStatusChip(status: equipment.status),
@@ -97,20 +98,35 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(label, style: TextStyle(color: scheme.onSurfaceVariant)),
-        ],
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Limitar el ancho para permitir salto de línea sin overflow en móvil
+    final maxChipWidth = (screenWidth - 160).clamp(180.0, screenWidth);
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxChipWidth),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(color: scheme.onSurfaceVariant),
+                softWrap: true,
+                maxLines: 3,
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

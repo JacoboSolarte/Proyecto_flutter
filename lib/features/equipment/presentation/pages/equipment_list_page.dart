@@ -262,26 +262,31 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                           borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
                         ),
                         prefixIcon: const Icon(Icons.search),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_searchController.text.isNotEmpty)
+                        // Limito el ancho del sufijo para evitar overflow dentro del TextField
+                        suffixIconConstraints: const BoxConstraints(maxWidth: 120),
+                        suffixIcon: SizedBox(
+                          width: 110,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_searchController.text.isNotEmpty)
+                                IconButton(
+                                  tooltip: 'Limpiar',
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _triggerSearch();
+                                  },
+                                ),
                               IconButton(
-                                tooltip: 'Limpiar',
-                                icon: const Icon(Icons.clear),
+                                tooltip: 'Cerrar búsqueda',
+                                icon: const Icon(Icons.close),
                                 onPressed: () {
-                                  _searchController.clear();
-                                  _triggerSearch();
+                                  setState(() => _isSearchOpen = false);
                                 },
                               ),
-                            IconButton(
-                              tooltip: 'Cerrar búsqueda',
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                setState(() => _isSearchOpen = false);
-                              },
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       onChanged: (_) => _debouncedSearch(),
@@ -489,20 +494,21 @@ class _ImageAnalyzerInlineState extends State<_ImageAnalyzerInline> {
               subtitle: const Text('Toma una foto o súbela y analiza con IA'),
             ),
             const SizedBox(height: 8),
-            Row(
+            // Acciones responsivas para evitar overflow horizontal
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 ElevatedButton.icon(
                   icon: const Icon(Icons.upload_file),
                   label: const Text('Seleccionar imagen'),
                   onPressed: _pickFromFiles,
                 ),
-                const SizedBox(width: 12),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.photo_camera),
                   label: const Text('Tomar foto'),
                   onPressed: kIsWeb ? null : _pickFromCamera,
                 ),
-                const SizedBox(width: 12),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.smart_toy_outlined),
                   label: Text(_isAnalyzing ? 'Analizando…' : 'Analizar con IA'),
