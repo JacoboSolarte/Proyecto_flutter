@@ -90,11 +90,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               ],
             ),
           ),
-          // Analizador de imágenes en Home
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: const _ImageAnalyzerInline(),
-          ),
+          // Analizador movido a bottom sheet desde navbar inferior
           Expanded(
             child: state.when(
               loading: () => _buildLoadingList(),
@@ -236,11 +232,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                     },
                   ),
                   IconButton(
-                    tooltip: 'Refrescar',
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () {
-                      _triggerSearch();
-                    },
+                    tooltip: 'Analizador IA',
+                    icon: const Icon(Icons.smart_toy),
+                    onPressed: _openImageAnalyzerSheet,
                   ),
                   IconButton(
                     tooltip: 'Escanear',
@@ -285,6 +279,22 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     ref.read(equipmentListControllerProvider.notifier).loadInitial(
           query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
         );
+  }
+
+  void _openImageAnalyzerSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          child: SingleChildScrollView(
+            child: const _ImageAnalyzerInline(),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildLoadingList() {
