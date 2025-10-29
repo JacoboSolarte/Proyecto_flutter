@@ -9,6 +9,44 @@ import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
 
+Future<void> _downloadQrForEquipment(BuildContext context, Equipment eq) async {
+  try {
+    final painter = QrPainter(
+      data: 'equipment:${eq.id}',
+      version: QrVersions.auto,
+      gapless: true,
+      eyeStyle: const QrEyeStyle(color: Color(0xFF000000)),
+      dataModuleStyle: const QrDataModuleStyle(color: Color(0xFF000000)),
+    );
+    final byteData = await painter.toImageData(1024, format: ui.ImageByteFormat.png);
+    final bytes = byteData?.buffer.asUint8List();
+    if (bytes == null) {
+      throw Exception('No se pudo generar la imagen del QR');
+    }
+    final sanitizedName = eq.name
+        .trim()
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
+        .replaceAll(RegExp(r'\s+'), '_');
+    await FileSaver.instance.saveFile(
+      name: 'equipment_${sanitizedName}_${eq.id}',
+      bytes: bytes,
+      ext: 'png',
+      mimeType: MimeType.png,
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('QR descargado correctamente')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al descargar QR: $e')),
+      );
+    }
+  }
+}
+
 Future<String?> _fetchLatestImageUrl(String equipmentId) async {
   try {
     final client = Supabase.instance.client;
@@ -36,12 +74,39 @@ class EquipmentDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(equipmentDetailProvider(id));
-    return Scaffold(
-      appBar: AppBar(title: const Text('Detalle de equipo')),
-      body: detail.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-        data: (eq) => _DetailContent(eq: eq),
+    return detail.when(
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Detalle de equipo')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Detalle de equipo')),
+        body: Center(child: Text('Error: $e')),
+      ),
+      data: (eq) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Detalle de equipo'),
+          actions: [
+            IconButton(
+              tooltip: 'Descargar QR',
+              icon: const Icon(Icons.download_outlined),
+              onPressed: () => _downloadQrForEquipment(context, eq),
+            ),
+            IconButton(
+              tooltip: 'Editar',
+              icon: const Icon(Icons.edit),
+              onPressed: () async {
+                final updated = await Navigator.of(context).push<Equipment?>(
+                  MaterialPageRoute(builder: (_) => EquipmentFormPage(existing: eq)),
+                );
+                if (updated != null && context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ],
+        ),
+        body: _DetailContent(eq: eq),
       ),
     );
   }
@@ -103,44 +168,6 @@ class _DetailContent extends StatelessWidget {
         return Icons.person_outline;
       default:
         return Icons.info_outline;
-    }
-  }
-
-  Future<void> _downloadQr(BuildContext context) async {
-    try {
-      final painter = QrPainter(
-        data: 'equipment:${eq.id}',
-        version: QrVersions.auto,
-        gapless: true,
-        eyeStyle: const QrEyeStyle(color: Color(0xFF000000)),
-        dataModuleStyle: const QrDataModuleStyle(color: Color(0xFF000000)),
-      );
-      final byteData = await painter.toImageData(1024, format: ui.ImageByteFormat.png);
-      final bytes = byteData?.buffer.asUint8List();
-      if (bytes == null) {
-        throw Exception('No se pudo generar la imagen del QR');
-      }
-      final sanitizedName = eq.name
-          .trim()
-          .replaceAll(RegExp(r'[\\/:*?"<>|]'), '-')
-          .replaceAll(RegExp(r'\s+'), '_');
-      await FileSaver.instance.saveFile(
-        name: 'equipment_${sanitizedName}_${eq.id}',
-        bytes: bytes,
-        ext: 'png',
-        mimeType: MimeType.png,
-      );
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QR descargado correctamente')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al descargar QR: $e')),
-        );
-      }
     }
   }
 
@@ -291,28 +318,8 @@ class _DetailContent extends StatelessWidget {
               ]
             ],
             const SizedBox(height: 12),
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Editar'),
-                  onPressed: () async {
-                    final updated = await Navigator.of(context).push<Equipment?>(
-                      MaterialPageRoute(builder: (_) => EquipmentFormPage(existing: eq)),
-                    );
-                    if (updated != null && context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.download),
-                  label: const Text('Descargar QR'),
-                  onPressed: () => _downloadQr(context),
-                ),
-              ],
-            ),
+            // Acciones movidas al AppBar superior derecho
+            const SizedBox(height: 12),
           ],
         ),
       ),
