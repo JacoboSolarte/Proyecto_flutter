@@ -24,6 +24,8 @@ class EquipmentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -36,7 +38,7 @@ class EquipmentCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.precision_manufacturing, size: 24),

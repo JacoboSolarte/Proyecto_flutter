@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'core/config/supabase_config.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/welcome_page.dart';
@@ -25,12 +26,18 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.teal);
+    // Cambiamos el esquema de color a un azul para un look móvil limpio
+    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
     return MaterialApp(
       title: 'Biomedic',
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,
+        // Tipografía moderna (Poppins). En plataformas sin la fuente, hace fallback
+        textTheme: GoogleFonts.poppinsTextTheme().apply(
+          bodyColor: colorScheme.onSurface,
+          displayColor: colorScheme.onSurface,
+        ),
         scaffoldBackgroundColor: colorScheme.surface,
         appBarTheme: AppBarTheme(
           backgroundColor: colorScheme.surface,
@@ -58,7 +65,7 @@ class MyApp extends StatelessWidget {
           labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
         cardTheme: CardThemeData(
-          elevation: 1,
+          elevation: 2,
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           color: colorScheme.surface,
           shadowColor: colorScheme.shadow,
@@ -81,9 +88,21 @@ class MyApp extends StatelessWidget {
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
+            foregroundColor: colorScheme.primary,
+            side: BorderSide(color: colorScheme.primary),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
+        ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.fuchsia: FadeUpwardsPageTransitionsBuilder(),
+          },
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: colorScheme.primary,

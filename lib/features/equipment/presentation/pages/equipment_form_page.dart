@@ -170,14 +170,6 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
                       label: const Text('Tomar foto'),
                       onPressed: kIsWeb ? null : _pickFromCamera,
                     ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.auto_awesome),
-                      label: Text(_isAnalyzing ? 'Analizando…' : 'Analizar con IA'),
-                      onPressed: (_isAnalyzing || (_imageBytes == null && _existingImageUrl == null))
-                          ? null
-                          : _analyzeImageWithAI,
-                    ),
                   ],
                 ),
                 if (_imageBytes != null) ...[

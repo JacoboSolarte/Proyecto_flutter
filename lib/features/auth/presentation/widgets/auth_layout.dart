@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 class AuthLayout extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
   final Widget child;
   final List<Widget>? bottomActions;
+  final bool primaryBackground;
 
   const AuthLayout({
     super.key,
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.child,
     this.bottomActions,
+    this.primaryBackground = false,
   });
 
   @override
@@ -21,6 +21,7 @@ class AuthLayout extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
+      backgroundColor: primaryBackground ? scheme.primary : null,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -36,31 +37,25 @@ class AuthLayout extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         title,
-                        style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryBackground ? scheme.onPrimary : null,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         subtitle,
-                        style: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: primaryBackground
+                              ? scheme.onPrimary.withOpacity(0.85)
+                              : scheme.onSurfaceVariant,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      Container(
-                        height: 160,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [scheme.primaryContainer, scheme.secondaryContainer],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: Icon(icon, size: 72, color: scheme.onPrimaryContainer),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+                      // Diseño minimalista sin imagen/ilustración, centrado
+                      const SizedBox(height: 8),
                       Card(
                         elevation: 1,
                         child: Padding(
@@ -77,21 +72,9 @@ class AuthLayout extends StatelessWidget {
                 ),
               ),
             );
+            // En escritorio mantén el contenido centrado sin columna lateral
             if (isWide) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                  ),
-                  Expanded(child: content),
-                ],
-              );
+              return Center(child: content);
             }
             return content;
           },
