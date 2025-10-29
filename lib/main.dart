@@ -108,8 +108,56 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  bool _handledUrl = false;
+  bool _forceRecovery = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _processAuthUrlIfNeeded();
+  }
+
+  void _processAuthUrlIfNeeded() {
+    final uri = Uri.base;
+    final hasCode = uri.queryParameters.containsKey('code');
+    final hasAccessTokenInFragment = uri.fragment.contains('access_token');
+    final isRecoveryType = uri.queryParameters['type'] == 'recovery' || uri.fragment.contains('type=recovery');
+    // Si la URL de retorno trae ?code, tokens en el fragmento o type=recovery, pedimos a Supabase que la procese.
+    if (!_handledUrl && (hasCode || hasAccessTokenInFragment || isRecoveryType)) {
+      _handledUrl = true;
+      Future.microtask(() async {
+        try {
+          // Intento genérico: que Supabase detecte sesión desde la URL
+          await Supabase.instance.client.auth.getSessionFromUrl(uri);
+          setState(() {
+            _forceRecovery = true;
+          });
+          // Emitirá signedIn y/o passwordRecovery según el tipo de enlace.
+        } catch (_) {
+          // Fallback para ?code si la detección genérica falla (p.ej. PKCE).
+          if (hasCode) {
+            try {
+              final code = uri.queryParameters['code']!;
+              await Supabase.instance.client.auth.exchangeCodeForSession(code);
+              setState(() {
+                _forceRecovery = true;
+              });
+            } catch (_) {
+              // Ignoramos errores aquí; el flujo normal seguirá mostrando Welcome/Login.
+            }
+          }
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,12 +165,20 @@ class AuthGate extends StatelessWidget {
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
         final authState = snapshot.data;
-        // En Flutter Web, Supabase coloca los parámetros en el fragmento (#) de la URL
-        // por ejemplo: #access_token=...&type=recovery
-        // Usamos este indicador para forzar la pantalla de restablecimiento
+        // En Flutter Web, Supabase coloca los parámetros en el fragmento (#) o en query
+        // Ejemplos: #access_token=...&type=recovery o ?type=recovery
         final uri = Uri.base;
-        final isRecoveryFromUrl = uri.fragment.contains('type=recovery');
-        if (authState?.event == AuthChangeEvent.passwordRecovery || isRecoveryFromUrl) {
+        final frag = uri.fragment;
+        final fragParams = frag.isNotEmpty ? Uri.splitQueryString(frag) : <String, String>{};
+        final isRecoveryFromUrl = frag.contains('type=recovery') ||
+            fragParams['type'] == 'recovery' ||
+            uri.queryParameters['type'] == 'recovery';
+        // Permitir rutas dedicadas, por ejemplo /reset o #/reset
+        final isResetPath = uri.pathSegments.contains('reset') ||
+            uri.pathSegments.contains('reset-password') ||
+            frag.contains('/reset') ||
+            frag.contains('reset-password');
+        if (_forceRecovery || authState?.event == AuthChangeEvent.passwordRecovery || isRecoveryFromUrl || isResetPath) {
           return const ResetPasswordPage();
         }
         final session = authState?.session ?? Supabase.instance.client.auth.currentSession;

@@ -229,6 +229,15 @@ using (bucket_id = 'images');
   - Contenido: `GOOGLE_API_KEY=<tu-clave>`
  - Producción: si no quieres exponer la clave en el cliente, deja vacío `GOOGLE_API_KEY`; el análisis local quedará desactivado. Opcionalmente, implementa un backend propio para realizar el análisis de forma segura.
 
+#### Recuperación de contraseña (Supabase)
+- Define `RESET_REDIRECT_URL` en `.env` para fijar la URL de retorno del enlace de recuperación.
+  - Ejemplo de desarrollo: `RESET_REDIRECT_URL=http://localhost:3000/#/reset`
+- Importante: ejecuta la app SIEMPRE en el mismo origen (puerto) que uses en `RESET_REDIRECT_URL` para evitar el error de "code verifier not found" en el flujo PKCE.
+  - Ejecutar web en puerto 3000: `flutter run -d web-server --web-port 3000 --web-hostname localhost`
+- En Supabase, configura `Authentication → URL Configuration`:
+  - `Site URL`: igual a tu origen (p. ej. `http://localhost:3000`)
+  - `Additional Redirect URLs`: incluye `http://localhost:3000` y `http://localhost:3000/#/reset`
+
 ### Uso en Flutter
 - Toma o selecciona una imagen en `EquipmentFormPage` o desde la lista.
  - Pulsa `Analizar con IA` para ver los resultados. La vista muestra la fuente: `IA`.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/auth_layout.dart';
 import '../providers/auth_providers.dart';
 
@@ -54,7 +55,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       if (!(_formKey.currentState?.validate() ?? false)) return;
                       try {
                         final email = _emailController.text.trim();
-                        final redirect = Uri.base.origin; // redirige a la app; el AuthGate capturará el evento
+                        // Usar URL fija desde .env si está definida; si no, origin actual
+                        final fixed = dotenv.env['RESET_REDIRECT_URL'];
+                        final redirect = fixed ?? '${Uri.base.origin}/#/reset';
                         await ref
                             .read(authControllerProvider.notifier)
                             .sendPasswordResetEmail(email, redirectTo: redirect);
