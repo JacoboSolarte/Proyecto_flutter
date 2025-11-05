@@ -115,11 +115,11 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
-                _buildStatusChip(null, 'Todos'),
-                _buildStatusChip('operativo', 'Operativo'),
-                _buildStatusChip('mantenimiento', 'Mantenimiento'),
-                _buildStatusChip('fuera_de_servicio', 'Fuera de servicio'),
-                _buildStatusChip('requiere_seguimiento', 'Requiere seguimiento'),
+                _buildStatusChip(null, 'Todos', count: total),
+                _buildStatusChip('operativo', 'Operativo', count: countOperativo),
+                _buildStatusChip('mantenimiento', 'Mantenimiento', count: countMantenimiento),
+                _buildStatusChip('fuera_de_servicio', 'Fuera de servicio', count: countFueraServicio),
+                _buildStatusChip('requiere_seguimiento', 'Requiere seguimiento', count: countSeguimiento),
               ],
             ),
           ),
@@ -130,93 +130,198 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               error: (e, _) => Center(child: Text('Error: $e')),
               data: (_) => items.isEmpty
                   ? _buildEmptyState(context)
-                  : ListView.separated(
-                      controller: _scrollController,
-                      itemCount: items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final eq = items[index];
-                        return EquipmentCard(
-                          equipment: eq,
-                          onTap: () {
-                            () async {
-                              final result = await Navigator.of(context).push<Equipment?>(
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        await ref
+                            .read(equipmentListControllerProvider.notifier)
+                            .loadInitial(
+                              query: EquipmentQuery(
+                                search: _searchController.text.trim(),
+                                status: _selectedStatus,
+                              ),
+                            );
+                      },
+                      child: (MediaQuery.of(context).size.width >= 900)
+                          ? GridView.builder(
+                              controller: _scrollController,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 2.8,
+                              ),
+                              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final eq = items[index];
+                                return EquipmentCard(
+                                  equipment: eq,
+                                  onTap: () {
+                                    () async {
+                                      final result = await Navigator.of(context).push<Equipment?>(
+                                        MaterialPageRoute(
+                                          builder: (_) => EquipmentDetailPage(id: eq.id),
+                                        ),
+                                      );
+                                      if (result != null && mounted) {
+                                        ref.read(equipmentListControllerProvider.notifier).replaceItem(result);
+                                      }
+                                    }();
+                                  },
+                                  onHeader: () {
+                                    ref.invalidate(maintenancesByEquipmentProvider(eq.id));
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
+                                      ),
+                                    );
+                                  },
+                                  onAddMaintenance: () async {
+                                    final result = await Navigator.of(context).push<bool?>(
+                                      MaterialPageRoute(
+                                        builder: (_) => MaintenanceFormPage(equipmentId: eq.id),
+                                      ),
+                                    );
+                                    if (result == true && mounted) {
+                                      ref.invalidate(maintenancesByEquipmentProvider(eq.id));
+                                      ref.read(equipmentListControllerProvider.notifier).loadInitial(
+                                            query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                          );
+                                    }
+                                  },
+                                  onEdit: () async {
+                                    final updated = await Navigator.of(context).push<Equipment?>(
+                                      MaterialPageRoute(
+                                        builder: (_) => EquipmentFormPage(existing: eq),
+                                      ),
+                                    );
+                                    if (updated != null && mounted) {
+                                      ref.read(equipmentListControllerProvider.notifier).replaceItem(updated);
+                                    }
+                                  },
+                                  onDelete: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Eliminar equipo'),
+                                        content: const Text('¿Deseas eliminar este equipo?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context, false),
+                                            child: const Text('Cancelar'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () => Navigator.pop(context, true),
+                                            child: const Text('Eliminar'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      final useCase = ref.read(deleteEquipmentUseCaseProvider);
+                                      await useCase(eq.id);
+                                      if (mounted) {
+                                        ref
+                                            .read(equipmentListControllerProvider.notifier)
+                                            .loadInitial(
+                                              query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                            );
+                                      }
+                                    }
+                                  },
+                                );
+                              },
+                            )
+                          : ListView.separated(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: items.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final eq = items[index];
+                          return EquipmentCard(
+                            equipment: eq,
+                            onTap: () {
+                              () async {
+                                final result = await Navigator.of(context).push<Equipment?>(
+                                  MaterialPageRoute(
+                                    builder: (_) => EquipmentDetailPage(id: eq.id),
+                                  ),
+                                );
+                                if (result != null && mounted) {
+                                  // Refleja el cambio del detalle inmediatamente en la lista
+                                  ref.read(equipmentListControllerProvider.notifier).replaceItem(result);
+                                }
+                              }();
+                            },
+                            onHeader: () {
+                              // Invalida cache del historial para forzar recarga al abrir encabezado
+                              ref.invalidate(maintenancesByEquipmentProvider(eq.id));
+                              Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => EquipmentDetailPage(id: eq.id),
+                                  builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
                                 ),
                               );
-                              if (result != null && mounted) {
-                                // Refleja el cambio del detalle inmediatamente en la lista
-                                ref.read(equipmentListControllerProvider.notifier).replaceItem(result);
-                              }
-                            }();
-                          },
-                          onHeader: () {
-                            // Invalida cache del historial para forzar recarga al abrir encabezado
-                            ref.invalidate(maintenancesByEquipmentProvider(eq.id));
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
-                              ),
-                            );
-                          },
-                          onAddMaintenance: () async {
-                            final result = await Navigator.of(context).push<bool?>(
-                              MaterialPageRoute(
-                                builder: (_) => MaintenanceFormPage(equipmentId: eq.id),
-                              ),
-                            );
-                            if (result == true && mounted) {
-                              // Invalida historial para que el encabezado muestre el nuevo mantenimiento
-                              ref.invalidate(maintenancesByEquipmentProvider(eq.id));
-                              ref.read(equipmentListControllerProvider.notifier).loadInitial(
-                                    query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
-                                  );
-                            }
-                          },
-                          onEdit: () async {
-                            final updated = await Navigator.of(context).push<Equipment?>(
-                              MaterialPageRoute(
-                                builder: (_) => EquipmentFormPage(existing: eq),
-                              ),
-                            );
-                            if (updated != null && mounted) {
-                              // Refleja el cambio inmediatamente en la lista actual, sin reiniciar la lista
-                              ref.read(equipmentListControllerProvider.notifier).replaceItem(updated);
-                            }
-                          },
-                          onDelete: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: const Text('Eliminar equipo'),
-                                content: const Text('¿Deseas eliminar este equipo?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    child: const Text('Eliminar'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirm == true) {
-                              final useCase = ref.read(deleteEquipmentUseCaseProvider);
-                              await useCase(eq.id);
-                              if (mounted) {
-                                ref
-                                    .read(equipmentListControllerProvider.notifier)
-                                    .loadInitial(
+                            },
+                            onAddMaintenance: () async {
+                              final result = await Navigator.of(context).push<bool?>(
+                                MaterialPageRoute(
+                                  builder: (_) => MaintenanceFormPage(equipmentId: eq.id),
+                                ),
+                              );
+                              if (result == true && mounted) {
+                                // Invalida historial para que el encabezado muestre el nuevo mantenimiento
+                                ref.invalidate(maintenancesByEquipmentProvider(eq.id));
+                                ref.read(equipmentListControllerProvider.notifier).loadInitial(
                                       query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
                                     );
                               }
-                            }
-                          },
-                        );
-                      },
+                            },
+                            onEdit: () async {
+                              final updated = await Navigator.of(context).push<Equipment?>(
+                                MaterialPageRoute(
+                                  builder: (_) => EquipmentFormPage(existing: eq),
+                                ),
+                              );
+                              if (updated != null && mounted) {
+                                // Refleja el cambio inmediatamente en la lista actual, sin reiniciar la lista
+                                ref.read(equipmentListControllerProvider.notifier).replaceItem(updated);
+                              }
+                            },
+                            onDelete: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('Eliminar equipo'),
+                                  content: const Text('¿Deseas eliminar este equipo?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text('Eliminar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                final useCase = ref.read(deleteEquipmentUseCaseProvider);
+                                await useCase(eq.id);
+                                if (mounted) {
+                                  ref
+                                      .read(equipmentListControllerProvider.notifier)
+                                      .loadInitial(
+                                        query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                      );
+                                }
+                              }
+                            },
+                          );
+                        },
+                      ),
                     ),
             ),
           ),
@@ -402,18 +507,33 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             Text('No hay equipos registrados', style: t.titleMedium),
             const SizedBox(height: 8),
             Text('Agrega tu primer equipo con el botón +', style: t.bodyMedium),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Agregar equipo'),
+              onPressed: () async {
+                final created = await Navigator.of(context).push<Equipment?>(
+                  MaterialPageRoute(
+                    builder: (_) => const EquipmentFormPage(),
+                  ),
+                );
+                if (created != null && mounted) {
+                  await ref.read(equipmentListControllerProvider.notifier).loadInitial();
+                }
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusChip(String? value, String label) {
+  Widget _buildStatusChip(String? value, String label, {int? count}) {
     final selected = _selectedStatus == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ChoiceChip(
-        label: Text(label),
+        label: Text(count == null ? label : '$label ($count)'),
         selected: selected,
         onSelected: (isSelected) {
           setState(() {
@@ -453,16 +573,19 @@ class _SkeletonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
+      elevation: 1,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              Container(height: 16, width: 160, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4))),
+              Container(height: 16, width: 160, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
             const SizedBox(height: 8),
-              Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4))),
+              Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
             const SizedBox(height: 6),
-              Container(height: 12, width: 220, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4))),
+              Container(height: 12, width: 220, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
           ],
         ),
       ),
