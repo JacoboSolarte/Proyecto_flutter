@@ -55,6 +55,17 @@ class EquipmentListController extends StateNotifier<AsyncValue<List<Equipment>>>
       state = AsyncValue.error(e, st);
     }
   }
+
+  // Optimiza la experiencia al reflejar cambios locales inmediatamente tras editar
+  void replaceItem(Equipment updated) {
+    final current = state.value;
+    if (current == null) return;
+    final idx = current.indexWhere((e) => e.id == updated.id);
+    if (idx == -1) return;
+    final newList = List<Equipment>.from(current);
+    newList[idx] = updated;
+    state = AsyncValue.data(newList);
+  }
 }
 
 final equipmentListControllerProvider = StateNotifierProvider<EquipmentListController, AsyncValue<List<Equipment>>>((ref) {

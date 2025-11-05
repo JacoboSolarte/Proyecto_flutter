@@ -100,7 +100,8 @@ class EquipmentDetailPage extends ConsumerWidget {
                   MaterialPageRoute(builder: (_) => EquipmentFormPage(existing: eq)),
                 );
                 if (updated != null && context.mounted) {
-                  Navigator.pop(context);
+                  // Devuelve el equipo actualizado al listado para reflejar cambios de inmediato
+                  Navigator.pop(context, updated);
                 }
               },
             ),

@@ -139,11 +139,17 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                         return EquipmentCard(
                           equipment: eq,
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => EquipmentDetailPage(id: eq.id),
-                              ),
-                            );
+                            () async {
+                              final result = await Navigator.of(context).push<Equipment?>(
+                                MaterialPageRoute(
+                                  builder: (_) => EquipmentDetailPage(id: eq.id),
+                                ),
+                              );
+                              if (result != null && mounted) {
+                                // Refleja el cambio del detalle inmediatamente en la lista
+                                ref.read(equipmentListControllerProvider.notifier).replaceItem(result);
+                              }
+                            }();
                           },
                           onHeader: () {
                             // Invalida cache del historial para forzar recarga al abrir encabezado
@@ -175,9 +181,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                               ),
                             );
                             if (updated != null && mounted) {
-                              ref.read(equipmentListControllerProvider.notifier).loadInitial(
-                                    query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
-                                  );
+                              // Refleja el cambio inmediatamente en la lista actual, sin reiniciar la lista
+                              ref.read(equipmentListControllerProvider.notifier).replaceItem(updated);
                             }
                           },
                           onDelete: () async {
