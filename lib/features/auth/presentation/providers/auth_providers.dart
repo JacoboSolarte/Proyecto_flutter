@@ -24,8 +24,15 @@ final currentUserStreamProvider = StreamProvider<AppUser?>((ref) {
 });
 
 class AuthController extends StateNotifier<AsyncValue<AppUser?>> {
-  AuthController(this._login, this._register, this._logout, this._update, this._requestReset, this._resetPassword, this._repo)
-      : super(const AsyncValue.loading()) {
+  AuthController(
+    this._login,
+    this._register,
+    this._logout,
+    this._update,
+    this._requestReset,
+    this._resetPassword,
+    this._repo,
+  ) : super(const AsyncValue.loading()) {
     _init();
   }
 
@@ -84,7 +91,10 @@ class AuthController extends StateNotifier<AsyncValue<AppUser?>> {
     }
   }
 
-  Future<void> sendPasswordResetEmail(String email, {String? redirectTo}) async {
+  Future<void> sendPasswordResetEmail(
+    String email, {
+    String? redirectTo,
+  }) async {
     // No cambiamos el estado global del usuario aquí; dejamos la UI manejar feedback
     try {
       await _requestReset(email: email, redirectTo: redirectTo);
@@ -104,15 +114,16 @@ class AuthController extends StateNotifier<AsyncValue<AppUser?>> {
   }
 }
 
-final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<AppUser?>>((ref) {
-  final repo = ref.watch(authRepositoryProvider);
-  return AuthController(
-    LoginUseCase(repo),
-    RegisterUseCase(repo),
-    LogoutUseCase(repo),
-    UpdateProfileUseCase(repo),
-    RequestPasswordResetUseCase(repo),
-    ResetPasswordUseCase(repo),
-    repo,
-  );
-});
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AsyncValue<AppUser?>>((ref) {
+      final repo = ref.watch(authRepositoryProvider);
+      return AuthController(
+        LoginUseCase(repo),
+        RegisterUseCase(repo),
+        LogoutUseCase(repo),
+        UpdateProfileUseCase(repo),
+        RequestPasswordResetUseCase(repo),
+        ResetPasswordUseCase(repo),
+        repo,
+      );
+    });

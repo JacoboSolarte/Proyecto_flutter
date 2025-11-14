@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'dart:convert';
-import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:http/http.dart' as http;
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/equipment.dart';
 import '../../domain/repositories/equipment_repository.dart';
 import '../widgets/equipment_card.dart';
@@ -18,9 +18,9 @@ import 'equipment_detail_page.dart';
 import 'equipment_header_page.dart';
 import 'maintenance_form_page.dart';
 import 'qr_scan_page.dart';
+import 'analysis_result_page.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import 'analysis_result_page.dart';
 import '../providers/maintenance_providers.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
@@ -67,13 +67,24 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     // Métricas de resumen para el encabezado
     final total = items.length;
     final countOperativo = items.where((e) => e.status == 'operativo').length;
-    final countMantenimiento = items.where((e) => e.status == 'mantenimiento').length;
-    final countFueraServicio = items.where((e) => e.status == 'fuera_de_servicio').length;
-    final countSeguimiento = items.where((e) => e.status == 'requiere_seguimiento').length;
+    final countMantenimiento = items
+        .where((e) => e.status == 'mantenimiento')
+        .length;
+    final countFueraServicio = items
+        .where((e) => e.status == 'fuera_de_servicio')
+        .length;
+    final countSeguimiento = items
+        .where((e) => e.status == 'requiere_seguimiento')
+        .length;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Equipos biomédicos'),
         actions: [
+          IconButton(
+            tooltip: 'Analizar imagen (IA)',
+            icon: const Icon(Icons.smart_toy_outlined),
+            onPressed: _openImageAnalyzerSheet,
+          ),
           IconButton(
             tooltip: 'Salir',
             icon: const Icon(Icons.logout),
@@ -91,7 +102,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: Card(
               elevation: 1,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Wrap(
@@ -99,11 +112,41 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _summaryChip(context, label: 'Total', icon: Icons.list_alt, count: total, color: Theme.of(context).colorScheme.primary),
-                    _summaryChip(context, label: 'Operativo', icon: Icons.check_circle, count: countOperativo, color: Colors.green),
-                    _summaryChip(context, label: 'Mantenimiento', icon: Icons.build_circle, count: countMantenimiento, color: Colors.amber),
-                    _summaryChip(context, label: 'Fuera de servicio', icon: Icons.report, count: countFueraServicio, color: Colors.red),
-                    _summaryChip(context, label: 'Seguimiento', icon: Icons.track_changes, count: countSeguimiento, color: Colors.blueGrey),
+                    _summaryChip(
+                      context,
+                      label: 'Total',
+                      icon: Icons.list_alt,
+                      count: total,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    _summaryChip(
+                      context,
+                      label: 'Operativo',
+                      icon: Icons.check_circle,
+                      count: countOperativo,
+                      color: Colors.green,
+                    ),
+                    _summaryChip(
+                      context,
+                      label: 'Mantenimiento',
+                      icon: Icons.build_circle,
+                      count: countMantenimiento,
+                      color: Colors.amber,
+                    ),
+                    _summaryChip(
+                      context,
+                      label: 'Fuera de servicio',
+                      icon: Icons.report,
+                      count: countFueraServicio,
+                      color: Colors.red,
+                    ),
+                    _summaryChip(
+                      context,
+                      label: 'Seguimiento',
+                      icon: Icons.track_changes,
+                      count: countSeguimiento,
+                      color: Colors.blueGrey,
+                    ),
                   ],
                 ),
               ),
@@ -116,10 +159,26 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
                 _buildStatusChip(null, 'Todos', count: total),
-                _buildStatusChip('operativo', 'Operativo', count: countOperativo),
-                _buildStatusChip('mantenimiento', 'Mantenimiento', count: countMantenimiento),
-                _buildStatusChip('fuera_de_servicio', 'Fuera de servicio', count: countFueraServicio),
-                _buildStatusChip('requiere_seguimiento', 'Requiere seguimiento', count: countSeguimiento),
+                _buildStatusChip(
+                  'operativo',
+                  'Operativo',
+                  count: countOperativo,
+                ),
+                _buildStatusChip(
+                  'mantenimiento',
+                  'Mantenimiento',
+                  count: countMantenimiento,
+                ),
+                _buildStatusChip(
+                  'fuera_de_servicio',
+                  'Fuera de servicio',
+                  count: countFueraServicio,
+                ),
+                _buildStatusChip(
+                  'requiere_seguimiento',
+                  'Requiere seguimiento',
+                  count: countSeguimiento,
+                ),
               ],
             ),
           ),
@@ -144,12 +203,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                       child: (MediaQuery.of(context).size.width >= 900)
                           ? GridView.builder(
                               controller: _scrollController,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 2.8,
-                              ),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 2.8,
+                                  ),
                               padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                               physics: const AlwaysScrollableScrollPhysics(),
                               itemCount: items.length,
@@ -159,45 +219,79 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                   equipment: eq,
                                   onTap: () {
                                     () async {
-                                      final result = await Navigator.of(context).push<Equipment?>(
-                                        MaterialPageRoute(
-                                          builder: (_) => EquipmentDetailPage(id: eq.id),
-                                        ),
-                                      );
+                                      final result = await Navigator.of(context)
+                                          .push<Equipment?>(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  EquipmentDetailPage(
+                                                    id: eq.id,
+                                                  ),
+                                            ),
+                                          );
                                       if (result != null && mounted) {
-                                        ref.read(equipmentListControllerProvider.notifier).replaceItem(result);
+                                        ref
+                                            .read(
+                                              equipmentListControllerProvider
+                                                  .notifier,
+                                            )
+                                            .replaceItem(result);
                                       }
                                     }();
                                   },
                                   onHeader: () {
-                                    ref.invalidate(maintenancesByEquipmentProvider(eq.id));
+                                    ref.invalidate(
+                                      maintenancesByEquipmentProvider(eq.id),
+                                    );
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
+                                        builder: (_) => EquipmentHeaderPage(
+                                          equipmentId: eq.id,
+                                        ),
                                       ),
                                     );
                                   },
                                   onAddMaintenance: () async {
-                                    final result = await Navigator.of(context).push<bool?>(
-                                      MaterialPageRoute(
-                                        builder: (_) => MaintenanceFormPage(equipmentId: eq.id),
-                                      ),
-                                    );
+                                    final result = await Navigator.of(context)
+                                        .push<bool?>(
+                                          MaterialPageRoute(
+                                            builder: (_) => MaintenanceFormPage(
+                                              equipmentId: eq.id,
+                                            ),
+                                          ),
+                                        );
                                     if (result == true && mounted) {
-                                      ref.invalidate(maintenancesByEquipmentProvider(eq.id));
-                                      ref.read(equipmentListControllerProvider.notifier).loadInitial(
-                                            query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                      ref.invalidate(
+                                        maintenancesByEquipmentProvider(eq.id),
+                                      );
+                                      ref
+                                          .read(
+                                            equipmentListControllerProvider
+                                                .notifier,
+                                          )
+                                          .loadInitial(
+                                            query: EquipmentQuery(
+                                              search: _searchController.text
+                                                  .trim(),
+                                              status: _selectedStatus,
+                                            ),
                                           );
                                     }
                                   },
                                   onEdit: () async {
-                                    final updated = await Navigator.of(context).push<Equipment?>(
-                                      MaterialPageRoute(
-                                        builder: (_) => EquipmentFormPage(existing: eq),
-                                      ),
-                                    );
+                                    final updated = await Navigator.of(context)
+                                        .push<Equipment?>(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                EquipmentFormPage(existing: eq),
+                                          ),
+                                        );
                                     if (updated != null && mounted) {
-                                      ref.read(equipmentListControllerProvider.notifier).replaceItem(updated);
+                                      ref
+                                          .read(
+                                            equipmentListControllerProvider
+                                                .notifier,
+                                          )
+                                          .replaceItem(updated);
                                     }
                                   },
                                   onDelete: () async {
@@ -205,27 +299,40 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                       context: context,
                                       builder: (_) => AlertDialog(
                                         title: const Text('Eliminar equipo'),
-                                        content: const Text('¿Deseas eliminar este equipo?'),
+                                        content: const Text(
+                                          '¿Deseas eliminar este equipo?',
+                                        ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
                                             child: const Text('Cancelar'),
                                           ),
                                           ElevatedButton(
-                                            onPressed: () => Navigator.pop(context, true),
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
                                             child: const Text('Eliminar'),
                                           ),
                                         ],
                                       ),
                                     );
                                     if (confirm == true) {
-                                      final useCase = ref.read(deleteEquipmentUseCaseProvider);
+                                      final useCase = ref.read(
+                                        deleteEquipmentUseCaseProvider,
+                                      );
                                       await useCase(eq.id);
                                       if (mounted) {
                                         ref
-                                            .read(equipmentListControllerProvider.notifier)
+                                            .read(
+                                              equipmentListControllerProvider
+                                                  .notifier,
+                                            )
                                             .loadInitial(
-                                              query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                              query: EquipmentQuery(
+                                                search: _searchController.text
+                                                    .trim(),
+                                                status: _selectedStatus,
+                                              ),
                                             );
                                       }
                                     }
@@ -234,94 +341,142 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                               },
                             )
                           : ListView.separated(
-                        controller: _scrollController,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final eq = items[index];
-                          return EquipmentCard(
-                            equipment: eq,
-                            onTap: () {
-                              () async {
-                                final result = await Navigator.of(context).push<Equipment?>(
-                                  MaterialPageRoute(
-                                    builder: (_) => EquipmentDetailPage(id: eq.id),
-                                  ),
-                                );
-                                if (result != null && mounted) {
-                                  // Refleja el cambio del detalle inmediatamente en la lista
-                                  ref.read(equipmentListControllerProvider.notifier).replaceItem(result);
-                                }
-                              }();
-                            },
-                            onHeader: () {
-                              // Invalida cache del historial para forzar recarga al abrir encabezado
-                              ref.invalidate(maintenancesByEquipmentProvider(eq.id));
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => EquipmentHeaderPage(equipmentId: eq.id),
-                                ),
-                              );
-                            },
-                            onAddMaintenance: () async {
-                              final result = await Navigator.of(context).push<bool?>(
-                                MaterialPageRoute(
-                                  builder: (_) => MaintenanceFormPage(equipmentId: eq.id),
-                                ),
-                              );
-                              if (result == true && mounted) {
-                                // Invalida historial para que el encabezado muestre el nuevo mantenimiento
-                                ref.invalidate(maintenancesByEquipmentProvider(eq.id));
-                                ref.read(equipmentListControllerProvider.notifier).loadInitial(
-                                      query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                              controller: _scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: items.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final eq = items[index];
+                                return EquipmentCard(
+                                  equipment: eq,
+                                  onTap: () {
+                                    () async {
+                                      final result = await Navigator.of(context)
+                                          .push<Equipment?>(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  EquipmentDetailPage(
+                                                    id: eq.id,
+                                                  ),
+                                            ),
+                                          );
+                                      if (result != null && mounted) {
+                                        // Refleja el cambio del detalle inmediatamente en la lista
+                                        ref
+                                            .read(
+                                              equipmentListControllerProvider
+                                                  .notifier,
+                                            )
+                                            .replaceItem(result);
+                                      }
+                                    }();
+                                  },
+                                  onHeader: () {
+                                    // Invalida cache del historial para forzar recarga al abrir encabezado
+                                    ref.invalidate(
+                                      maintenancesByEquipmentProvider(eq.id),
                                     );
-                              }
-                            },
-                            onEdit: () async {
-                              final updated = await Navigator.of(context).push<Equipment?>(
-                                MaterialPageRoute(
-                                  builder: (_) => EquipmentFormPage(existing: eq),
-                                ),
-                              );
-                              if (updated != null && mounted) {
-                                // Refleja el cambio inmediatamente en la lista actual, sin reiniciar la lista
-                                ref.read(equipmentListControllerProvider.notifier).replaceItem(updated);
-                              }
-                            },
-                            onDelete: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  title: const Text('Eliminar equipo'),
-                                  content: const Text('¿Deseas eliminar este equipo?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () => Navigator.pop(context, true),
-                                      child: const Text('Eliminar'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              if (confirm == true) {
-                                final useCase = ref.read(deleteEquipmentUseCaseProvider);
-                                await useCase(eq.id);
-                                if (mounted) {
-                                  ref
-                                      .read(equipmentListControllerProvider.notifier)
-                                      .loadInitial(
-                                        query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => EquipmentHeaderPage(
+                                          equipmentId: eq.id,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  onAddMaintenance: () async {
+                                    final result = await Navigator.of(context)
+                                        .push<bool?>(
+                                          MaterialPageRoute(
+                                            builder: (_) => MaintenanceFormPage(
+                                              equipmentId: eq.id,
+                                            ),
+                                          ),
+                                        );
+                                    if (result == true && mounted) {
+                                      // Invalida historial para que el encabezado muestre el nuevo mantenimiento
+                                      ref.invalidate(
+                                        maintenancesByEquipmentProvider(eq.id),
                                       );
-                                }
-                              }
-                            },
-                          );
-                        },
-                      ),
+                                      ref
+                                          .read(
+                                            equipmentListControllerProvider
+                                                .notifier,
+                                          )
+                                          .loadInitial(
+                                            query: EquipmentQuery(
+                                              search: _searchController.text
+                                                  .trim(),
+                                              status: _selectedStatus,
+                                            ),
+                                          );
+                                    }
+                                  },
+                                  onEdit: () async {
+                                    final updated = await Navigator.of(context)
+                                        .push<Equipment?>(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                EquipmentFormPage(existing: eq),
+                                          ),
+                                        );
+                                    if (updated != null && mounted) {
+                                      // Refleja el cambio inmediatamente en la lista actual, sin reiniciar la lista
+                                      ref
+                                          .read(
+                                            equipmentListControllerProvider
+                                                .notifier,
+                                          )
+                                          .replaceItem(updated);
+                                    }
+                                  },
+                                  onDelete: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Eliminar equipo'),
+                                        content: const Text(
+                                          '¿Deseas eliminar este equipo?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancelar'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text('Eliminar'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      final useCase = ref.read(
+                                        deleteEquipmentUseCaseProvider,
+                                      );
+                                      await useCase(eq.id);
+                                      if (mounted) {
+                                        ref
+                                            .read(
+                                              equipmentListControllerProvider
+                                                  .notifier,
+                                            )
+                                            .loadInitial(
+                                              query: EquipmentQuery(
+                                                search: _searchController.text
+                                                    .trim(),
+                                                status: _selectedStatus,
+                                              ),
+                                            );
+                                      }
+                                    }
+                                  },
+                                );
+                              },
+                            ),
                     ),
             ),
           ),
@@ -336,7 +491,12 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           if (created != null && mounted) {
             ref
                 .read(equipmentListControllerProvider.notifier)
-                .loadInitial(query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus));
+                .loadInitial(
+                  query: EquipmentQuery(
+                    search: _searchController.text.trim(),
+                    status: _selectedStatus,
+                  ),
+                );
           }
         },
         child: const Icon(Icons.add),
@@ -346,8 +506,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: Row(
-              mainAxisAlignment:
-                  _isSearchOpen ? MainAxisAlignment.start : MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: _isSearchOpen
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.spaceEvenly,
               children: [
                 if (_isSearchOpen)
                   Expanded(
@@ -355,25 +516,36 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                       controller: _searchController,
                       textInputAction: TextInputAction.search,
                       decoration: InputDecoration(
-                        hintText: 'Buscar por nombre, marca, modelo, serie o ubicación',
+                        hintText:
+                            'Buscar por nombre, marca, modelo, serie o ubicación',
                         isDense: true,
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                         prefixIcon: const Icon(Icons.search),
                         // Limito el ancho del sufijo para evitar overflow dentro del TextField
-                        suffixIconConstraints: const BoxConstraints(maxWidth: 120),
+                        suffixIconConstraints: const BoxConstraints(
+                          maxWidth: 120,
+                        ),
                         suffixIcon: SizedBox(
                           width: 110,
                           child: Row(
@@ -418,11 +590,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                     },
                   ),
                   IconButton(
-                    tooltip: 'Analizador IA',
-                    icon: const Icon(Icons.smart_toy),
-                    onPressed: _openImageAnalyzerSheet,
-                  ),
-                  IconButton(
                     tooltip: 'Escanear',
                     icon: const Icon(Icons.camera_alt),
                     onPressed: () {
@@ -456,32 +623,41 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     );
   }
 
+  void _openImageAnalyzerSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: const _ImageAnalyzerInline(),
+        );
+      },
+    );
+  }
+
   void _debouncedSearch() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), _triggerSearch);
   }
 
   void _triggerSearch() {
-    ref.read(equipmentListControllerProvider.notifier).loadInitial(
-          query: EquipmentQuery(search: _searchController.text.trim(), status: _selectedStatus),
+    ref
+        .read(equipmentListControllerProvider.notifier)
+        .loadInitial(
+          query: EquipmentQuery(
+            search: _searchController.text.trim(),
+            status: _selectedStatus,
+          ),
         );
   }
 
-  void _openImageAnalyzerSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-          child: SingleChildScrollView(
-            child: const _ImageAnalyzerInline(),
-          ),
-        );
-      },
-    );
-  }
+  // Eliminado: hoja de analizador IA
 
   Widget _buildLoadingList() {
     return ListView.builder(
@@ -502,7 +678,11 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                    Icon(Icons.inventory_2, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.inventory_2,
+              size: 64,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(height: 12),
             Text('No hay equipos registrados', style: t.titleMedium),
             const SizedBox(height: 8),
@@ -513,12 +693,12 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
               label: const Text('Agregar equipo'),
               onPressed: () async {
                 final created = await Navigator.of(context).push<Equipment?>(
-                  MaterialPageRoute(
-                    builder: (_) => const EquipmentFormPage(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const EquipmentFormPage()),
                 );
                 if (created != null && mounted) {
-                  await ref.read(equipmentListControllerProvider.notifier).loadInitial();
+                  await ref
+                      .read(equipmentListControllerProvider.notifier)
+                      .loadInitial();
                 }
               },
             ),
@@ -581,17 +761,39 @@ class _SkeletonCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              Container(height: 16, width: 160, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
+            Container(
+              height: 16,
+              width: 160,
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
             const SizedBox(height: 8),
-              Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
+            Container(
+              height: 12,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
             const SizedBox(height: 6),
-              Container(height: 12, width: 220, decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
+            Container(
+              height: 12,
+              width: 220,
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
 
 class _ImageAnalyzerInline extends StatefulWidget {
   const _ImageAnalyzerInline();

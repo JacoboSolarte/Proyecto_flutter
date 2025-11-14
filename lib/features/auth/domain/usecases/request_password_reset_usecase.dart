@@ -5,6 +5,9 @@ class RequestPasswordResetUseCase {
   RequestPasswordResetUseCase(this.repository);
 
   Future<void> call({required String email, String? redirectTo}) {
-    return repository.requestPasswordReset(email: email, redirectTo: redirectTo);
+    return repository.requestPasswordReset(
+      email: email,
+      redirectTo: redirectTo,
+    );
   }
 }

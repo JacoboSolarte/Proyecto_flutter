@@ -45,7 +45,10 @@ class MyApp extends StatelessWidget {
           foregroundColor: colorScheme.onSurface,
           elevation: 0.5,
           centerTitle: true,
-          titleTextStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          titleTextStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
@@ -62,7 +65,10 @@ class MyApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
           labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
         cardTheme: CardThemeData(
@@ -70,9 +76,13 @@ class MyApp extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           color: colorScheme.surface,
           shadowColor: colorScheme.shadow,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
-        listTileTheme: const ListTileThemeData(contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+        listTileTheme: const ListTileThemeData(
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
         chipTheme: ChipThemeData(
           selectedColor: colorScheme.primaryContainer,
           backgroundColor: colorScheme.surfaceContainerHighest,
@@ -83,7 +93,9 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -91,7 +103,9 @@ class MyApp extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: colorScheme.primary,
             side: BorderSide(color: colorScheme.primary),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -108,7 +122,9 @@ class MyApp extends StatelessWidget {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
@@ -149,9 +165,12 @@ class _AuthGateState extends State<AuthGate> {
     final uri = Uri.base;
     final hasCode = uri.queryParameters.containsKey('code');
     final hasAccessTokenInFragment = uri.fragment.contains('access_token');
-    final isRecoveryType = uri.queryParameters['type'] == 'recovery' || uri.fragment.contains('type=recovery');
+    final isRecoveryType =
+        uri.queryParameters['type'] == 'recovery' ||
+        uri.fragment.contains('type=recovery');
     // Si la URL de retorno trae ?code, tokens en el fragmento o type=recovery, pedimos a Supabase que la procese.
-    if (!_handledUrl && (hasCode || hasAccessTokenInFragment || isRecoveryType)) {
+    if (!_handledUrl &&
+        (hasCode || hasAccessTokenInFragment || isRecoveryType)) {
       _handledUrl = true;
       Future.microtask(() async {
         try {
@@ -189,19 +208,27 @@ class _AuthGateState extends State<AuthGate> {
         // Ejemplos: #access_token=...&type=recovery o ?type=recovery
         final uri = Uri.base;
         final frag = uri.fragment;
-        final fragParams = frag.isNotEmpty ? Uri.splitQueryString(frag) : <String, String>{};
-        final isRecoveryFromUrl = frag.contains('type=recovery') ||
+        final fragParams = frag.isNotEmpty
+            ? Uri.splitQueryString(frag)
+            : <String, String>{};
+        final isRecoveryFromUrl =
+            frag.contains('type=recovery') ||
             fragParams['type'] == 'recovery' ||
             uri.queryParameters['type'] == 'recovery';
         // Permitir rutas dedicadas, por ejemplo /reset o #/reset
-        final isResetPath = uri.pathSegments.contains('reset') ||
+        final isResetPath =
+            uri.pathSegments.contains('reset') ||
             uri.pathSegments.contains('reset-password') ||
             frag.contains('/reset') ||
             frag.contains('reset-password');
-        if (_forceRecovery || authState?.event == AuthChangeEvent.passwordRecovery || isRecoveryFromUrl || isResetPath) {
+        if (_forceRecovery ||
+            authState?.event == AuthChangeEvent.passwordRecovery ||
+            isRecoveryFromUrl ||
+            isResetPath) {
           return const ResetPasswordPage();
         }
-        final session = authState?.session ?? Supabase.instance.client.auth.currentSession;
+        final session =
+            authState?.session ?? Supabase.instance.client.auth.currentSession;
         if (session != null) {
           return const EquipmentListPage();
         }

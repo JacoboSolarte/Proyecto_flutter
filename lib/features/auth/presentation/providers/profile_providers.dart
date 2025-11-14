@@ -12,9 +12,9 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 final profileControllerProvider =
     StateNotifierProvider<ProfileController, AsyncValue<UserProfile?>>((ref) {
-  final repo = ref.watch(profileRepositoryProvider);
-  return ProfileController(repo);
-});
+      final repo = ref.watch(profileRepositoryProvider);
+      return ProfileController(repo);
+    });
 
 class ProfileController extends StateNotifier<AsyncValue<UserProfile?>> {
   ProfileController(this._repo) : super(const AsyncValue.loading());

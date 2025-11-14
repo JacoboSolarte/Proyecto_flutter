@@ -4,6 +4,7 @@ import '../../domain/entities/equipment.dart';
 import '../../domain/entities/maintenance.dart';
 import '../providers/equipment_providers.dart';
 import '../providers/maintenance_providers.dart';
+import '../widgets/ui_components.dart';
 
 class EquipmentHeaderPage extends ConsumerWidget {
   final String equipmentId;
@@ -66,7 +67,9 @@ class _HeaderContent extends StatelessWidget {
       children: [
         Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -74,12 +77,16 @@ class _HeaderContent extends StatelessWidget {
               children: [
                 Text(eq.name, style: theme.textTheme.titleLarge),
                 const SizedBox(height: 8),
-                Wrap(spacing: 8, runSpacing: 8, children: [
-                  _InfoChip(label: 'Código/ID', value: eq.id),
-                  if (eq.location != null && eq.location!.isNotEmpty)
-                    _InfoChip(label: 'Ubicación', value: eq.location!),
-                  _InfoChip(label: 'Estado', value: eq.status),
-                ]),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    InfoChip(label: 'Código/ID', value: eq.id),
+                    if (eq.location != null && eq.location!.isNotEmpty)
+                      InfoChip(label: 'Ubicación', value: eq.location!),
+                    InfoChip(label: 'Estado', value: eq.status),
+                  ],
+                ),
               ],
             ),
           ),
@@ -87,21 +94,26 @@ class _HeaderContent extends StatelessWidget {
         const SizedBox(height: 16),
         Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Identificación técnica', style: theme.textTheme.titleMedium),
+                Text(
+                  'Identificación técnica',
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: 12),
-                _InfoRow(label: 'Fabricante', value: eq.vendor ?? '-'),
-                _InfoRow(label: 'Modelo', value: eq.model ?? '-'),
-                _InfoRow(label: 'Número de serie', value: eq.serial ?? '-'),
-                _InfoRow(
+                InfoRow(label: 'Fabricante', value: eq.vendor ?? '-'),
+                InfoRow(label: 'Modelo', value: eq.model ?? '-'),
+                InfoRow(label: 'Número de serie', value: eq.serial ?? '-'),
+                InfoRow(
                   label: 'Fecha de adquisición',
                   value: eq.purchaseDate != null
-                      ? _formatDate(eq.purchaseDate!)
+                      ? formatDate(eq.purchaseDate!)
                       : '-',
                 ),
               ],
@@ -109,64 +121,6 @@ class _HeaderContent extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  String _formatDate(DateTime d) {
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  final String label;
-  final String value;
-  const _InfoChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      label: Text('$label: $value'),
-      visualDensity: VisualDensity.compact,
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _InfoRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < 360;
-          if (isNarrow) {
-            // En pantallas estrechas apila el contenido para evitar recortes
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(value),
-              ],
-            );
-          }
-          return Row(
-            children: [
-              SizedBox(width: 180, child: Text(label)),
-              Expanded(
-                child: Text(
-                  value,
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }
@@ -186,14 +140,20 @@ class _MaintenanceSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Historial de mantenimiento', style: theme.textTheme.titleMedium),
+            Text(
+              'Historial de mantenimiento',
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             state.when(
-              loading: () => const Center(child: Padding(
-                padding: EdgeInsets.all(12.0),
-                child: CircularProgressIndicator(),
-              )),
-              error: (e, st) => Text('Error cargando mantenimientos: ' + e.toString()),
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (e, st) =>
+                  Text('Error cargando mantenimientos: ' + e.toString()),
               data: (items) {
                 if (items.isEmpty) {
                   return const Text('Sin registros de mantenimiento.');
@@ -205,23 +165,35 @@ class _MaintenanceSection extends StatelessWidget {
                   separatorBuilder: (_, __) => const Divider(height: 8),
                   itemBuilder: (context, index) {
                     final m = items[index];
-                    final icon = m.maintenanceType == 'correctivo' ? Icons.build : Icons.handyman;
-                    final dateStr = _formatDate(m.maintenanceDate);
-                    final nextStr = m.nextMaintenanceDate != null ? _formatDate(m.nextMaintenanceDate!) : null;
+                    final icon = m.maintenanceType == 'correctivo'
+                        ? Icons.build
+                        : Icons.handyman;
+                    final dateStr = formatDate(m.maintenanceDate);
+                    final nextStr = m.nextMaintenanceDate != null
+                        ? formatDate(m.nextMaintenanceDate!)
+                        : null;
                     return ListTile(
                       leading: Icon(icon),
                       title: Text('${m.maintenanceType} • $dateStr'),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (m.description != null && m.description!.isNotEmpty)
-                            Text(m.description!, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          if (m.description != null &&
+                              m.description!.isNotEmpty)
+                            Text(
+                              m.description!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           Text('Responsable: ${m.responsible ?? '-'}'),
-                          if (nextStr != null) Text('Próximo mantenimiento: $nextStr'),
+                          if (nextStr != null)
+                            Text('Próximo mantenimiento: $nextStr'),
                         ],
                       ),
                       trailing: Chip(label: Text(_statusLabel(m.finalStatus))),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 0.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 0.0,
+                      ),
                     );
                   },
                 );
