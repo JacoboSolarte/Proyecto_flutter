@@ -22,6 +22,12 @@ import 'analysis_result_page.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/maintenance_providers.dart';
+import '../widgets/image_analyzer_sheet.dart';
+import '../utils/notes_utils.dart';
+import '../widgets/summary_bar.dart';
+import '../widgets/status_filter_bar.dart';
+import '../widgets/skeleton_card.dart';
+import '../widgets/empty_state.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -100,95 +106,53 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           // Resumen de métricas
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: Card(
-              elevation: 1,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _summaryChip(
-                      context,
-                      label: 'Total',
-                      icon: Icons.list_alt,
-                      count: total,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    _summaryChip(
-                      context,
-                      label: 'Operativo',
-                      icon: Icons.check_circle,
-                      count: countOperativo,
-                      color: Colors.green,
-                    ),
-                    _summaryChip(
-                      context,
-                      label: 'Mantenimiento',
-                      icon: Icons.build_circle,
-                      count: countMantenimiento,
-                      color: Colors.amber,
-                    ),
-                    _summaryChip(
-                      context,
-                      label: 'Fuera de servicio',
-                      icon: Icons.report,
-                      count: countFueraServicio,
-                      color: Colors.red,
-                    ),
-                    _summaryChip(
-                      context,
-                      label: 'Seguimiento',
-                      icon: Icons.track_changes,
-                      count: countSeguimiento,
-                      color: Colors.blueGrey,
-                    ),
-                  ],
-                ),
-              ),
+            child: SummaryBar(
+              total: total,
+              countOperativo: countOperativo,
+              countMantenimiento: countMantenimiento,
+              countFueraServicio: countFueraServicio,
+              countSeguimiento: countSeguimiento,
             ),
           ),
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                _buildStatusChip(null, 'Todos', count: total),
-                _buildStatusChip(
-                  'operativo',
-                  'Operativo',
-                  count: countOperativo,
-                ),
-                _buildStatusChip(
-                  'mantenimiento',
-                  'Mantenimiento',
-                  count: countMantenimiento,
-                ),
-                _buildStatusChip(
-                  'fuera_de_servicio',
-                  'Fuera de servicio',
-                  count: countFueraServicio,
-                ),
-                _buildStatusChip(
-                  'requiere_seguimiento',
-                  'Requiere seguimiento',
-                  count: countSeguimiento,
-                ),
-              ],
-            ),
+          StatusFilterBar(
+            selectedStatus: _selectedStatus,
+            total: total,
+            countOperativo: countOperativo,
+            countMantenimiento: countMantenimiento,
+            countFueraServicio: countFueraServicio,
+            countSeguimiento: countSeguimiento,
+            onStatusSelected: (value) {
+              setState(() {
+                _selectedStatus = value;
+              });
+              _triggerSearch();
+            },
           ),
           // Analizador movido a bottom sheet desde navbar inferior
           Expanded(
             child: state.when(
-              loading: () => _buildLoadingList(),
+              loading: () => ListView.builder(
+                itemCount: 6,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: SkeletonCard(),
+                ),
+              ),
               error: (e, _) => Center(child: Text('Error: $e')),
               data: (_) => items.isEmpty
-                  ? _buildEmptyState(context)
+                  ? EmptyState(
+                      onAdd: () async {
+                        final created = await Navigator.of(context).push<Equipment?>(
+                          MaterialPageRoute(builder: (_) => const EquipmentFormPage()),
+                        );
+                        if (created != null && mounted) {
+                          await ref
+                              .read(equipmentListControllerProvider.notifier)
+                              .loadInitial();
+                        }
+                      },
+                    )
                   : RefreshIndicator(
                       onRefresh: () async {
                         await ref
@@ -624,21 +588,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   }
 
   void _openImageAnalyzerSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
-          ),
-          child: const _ImageAnalyzerInline(),
-        );
-      },
-    );
+    showImageAnalyzerSheet(context);
   }
 
   void _debouncedSearch() {
@@ -659,140 +609,16 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
 
   // Eliminado: hoja de analizador IA
 
-  Widget _buildLoadingList() {
-    return ListView.builder(
-      itemCount: 6,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemBuilder: (context, index) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: _SkeletonCard(),
-      ),
-    );
-  }
+  
 
-  Widget _buildEmptyState(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.inventory_2,
-              size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 12),
-            Text('No hay equipos registrados', style: t.titleMedium),
-            const SizedBox(height: 8),
-            Text('Agrega tu primer equipo con el botón +', style: t.bodyMedium),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar equipo'),
-              onPressed: () async {
-                final created = await Navigator.of(context).push<Equipment?>(
-                  MaterialPageRoute(builder: (_) => const EquipmentFormPage()),
-                );
-                if (created != null && mounted) {
-                  await ref
-                      .read(equipmentListControllerProvider.notifier)
-                      .loadInitial();
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
-  Widget _buildStatusChip(String? value, String label, {int? count}) {
-    final selected = _selectedStatus == value;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: ChoiceChip(
-        label: Text(count == null ? label : '$label ($count)'),
-        selected: selected,
-        onSelected: (isSelected) {
-          setState(() {
-            _selectedStatus = isSelected ? value : null;
-          });
-          _triggerSearch();
-        },
-      ),
-    );
-  }
+  
 
-  Widget _summaryChip(
-    BuildContext context, {
-    required String label,
-    required IconData icon,
-    required int count,
-    required Color color,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    final bg = color.withOpacity(0.10);
-    final border = color.withOpacity(0.25);
-    return Chip(
-      avatar: Icon(icon, color: color, size: 18),
-      label: Text('$label: $count', style: TextStyle(color: scheme.onSurface)),
-      backgroundColor: bg,
-      side: BorderSide(color: border),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-    );
-  }
+  
 }
 
-class _SkeletonCard extends StatelessWidget {
-  const _SkeletonCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 1,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 16,
-              width: 160,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              height: 12,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              height: 12,
-              width: 220,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+ 
 
 
 class _ImageAnalyzerInline extends StatefulWidget {
@@ -981,7 +807,7 @@ class _ImageAnalyzerInlineState extends State<_ImageAnalyzerInline> {
                 'serial': result['serial']?.toString() ?? 'Desconocido',
                 'location': 'Desconocido',
               'vendor': 'Desconocido',
-                'notes': _stripOptionsFromNotes(
+                'notes': stripOptionsFromNotes(
                   (result['notes']?.toString() ?? result['description']?.toString() ?? '').trim(),
                 ),
               'options_brand': result['brand']?.toString() ?? 'Desconocido',
@@ -1104,7 +930,7 @@ class _ImageAnalyzerInlineState extends State<_ImageAnalyzerInline> {
             .replaceAll(RegExp(r'^```json\s*'), '')
             .replaceAll(RegExp(r'^```\s*'), '')
             .replaceAll(RegExp(r'```$'), '');
-        final onlyParagraph = _stripOptionsFromNotes(clean);
+        final onlyParagraph = stripOptionsFromNotes(clean);
         return {
           'result': {
             'notes': onlyParagraph,
@@ -1117,75 +943,8 @@ class _ImageAnalyzerInlineState extends State<_ImageAnalyzerInline> {
     throw Exception('No se pudo obtener respuesta de IA');
   }
 
-  // (OCR y descripciones heurísticas eliminadas para garantizar respuesta 100% IA)
+ 
 
-  Map<String, String> _extractOptionsFromNotes(String notes) {
-    final brandMatch = RegExp(r'Marca posibles:\s*([^;]+)', caseSensitive: false).firstMatch(notes);
-    final modelMatch = RegExp(r'Modelo posibles:\s*([^;]+)', caseSensitive: false).firstMatch(notes);
-    final serialMatch = RegExp(r'Serie posible:\s*([^.;]+)', caseSensitive: false).firstMatch(notes);
-    return {
-      'brand': brandMatch?.group(1)?.trim() ?? '',
-      'model': modelMatch?.group(1)?.trim() ?? '',
-      'serial': serialMatch?.group(1)?.trim() ?? '',
-    };
-  }
+  
 
-  String _stripOptionsFromNotes(String notes) {
-    var s = notes;
-    s = s.replaceAll(RegExp(r'(Marca|Marcas) posibles?:\s*[^;\n]+(;)?', caseSensitive: false), '');
-    s = s.replaceAll(RegExp(r'Modelo(s)? posibles?:\s*[^;\n]+(;)?', caseSensitive: false), '');
-    s = s.replaceAll(RegExp(r'(Serie|Serial)(s)? posible(s)?:\s*[^.;\n]+(;|\.)?', caseSensitive: false), '');
-    s = s.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
-    return s;
-  }
-
-  Map<String, String> _normalizeFieldsFromMap(Map<String, dynamic> src) {
-    final kv = <String, String>{};
-    String? getKey(List<String> names) {
-      for (final k in src.keys) {
-        final lk = k.toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-        for (final n in names) {
-          final ln = n.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-          if (lk == ln) return k;
-        }
-      }
-      return null;
-    }
-
-    String pick(List<String> names) {
-      final k = getKey(names);
-      final v = (k != null ? src[k] : null)?.toString() ?? '';
-      return v.trim();
-    }
-
-    final brand = pick(['brand', 'marca', 'manufacturer', 'fabricante', 'maker']);
-    final model = pick(['model', 'modelo', 'modelnumber', 'model_no', 'mod', 'modelname']);
-    var serial = pick(['serial', 'serialnumber', 'serie', 'sn', 's/n', 'no_serie']);
-    var name = pick(['name', 'nombre', 'equipmentname', 'equipo', 'product', 'producto']);
-    var notes = pick(['notes', 'descripcion', 'description', 'desc']);
-
-    if (name.isEmpty) {
-      name = [brand, model].where((e) => e.isNotEmpty).join(' ');
-    }
-
-    // No generar descripciones locales: mantener notas vacías si la IA no provee contenido
-    
-    String _safe(String s) => s.trim().isEmpty ? 'Desconocido' : s.trim();
-
-    final opts = _extractOptionsFromNotes(notes);
-    final optionsBrand = opts['brand'] ?? '';
-    final optionsModel = opts['model'] ?? '';
-    final optionsSerial = opts['serial'] ?? '';
-
-    return {
-      'name': _safe(name),
-      'brand': _safe(brand),
-      'model': _safe(model),
-      'serial': _safe(serial),
-      'notes': _stripOptionsFromNotes(notes),
-      'options_brand': optionsBrand.isNotEmpty ? optionsBrand : _safe(brand),
-      'options_model': optionsModel.isNotEmpty ? optionsModel : _safe(model),
-      'options_serial': optionsSerial.isNotEmpty ? optionsSerial : _safe(serial),
-    };
-  }
 }
