@@ -57,16 +57,42 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     super.dispose();
   }
 
+  Future<bool?> _confirmDelete(BuildContext context) => showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Eliminar equipo'),
+      content: const Text('¿Deseas eliminar este equipo?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Eliminar'),
+        ),
+      ],
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(equipmentListControllerProvider);
     final items = state.value ?? [];
     // Métricas de resumen para el encabezado
     final total = items.length;
-    final countOperativo = items.where((e) => e.status == EquipmentStatus.operativo).length;
-    final countMantenimiento = items.where((e) => e.status == EquipmentStatus.mantenimiento).length;
-    final countFueraServicio = items.where((e) => e.status == EquipmentStatus.fueraDeServicio).length;
-    final countSeguimiento = items.where((e) => e.status == EquipmentStatus.requiereSeguimiento).length;
+    final countOperativo = items
+        .where((e) => e.status == EquipmentStatus.operativo)
+        .length;
+    final countMantenimiento = items
+        .where((e) => e.status == EquipmentStatus.mantenimiento)
+        .length;
+    final countFueraServicio = items
+        .where((e) => e.status == EquipmentStatus.fueraDeServicio)
+        .length;
+    final countSeguimiento = items
+        .where((e) => e.status == EquipmentStatus.requiereSeguimiento)
+        .length;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Equipos biomédicos'),
@@ -247,26 +273,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                     }
                                   },
                                   onDelete: () async {
-                                    final confirm = await showDialog<bool>(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                        title: const Text('Eliminar equipo'),
-                                        content: const Text(
-                                          '¿Deseas eliminar este equipo?',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, false),
-                                            child: const Text('Cancelar'),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, true),
-                                            child: const Text('Eliminar'),
-                                          ),
-                                        ],
-                                      ),
+                                    final confirm = await _confirmDelete(
+                                      context,
                                     );
                                     if (confirm == true) {
                                       final useCase = ref.read(
@@ -384,26 +392,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                     }
                                   },
                                   onDelete: () async {
-                                    final confirm = await showDialog<bool>(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                        title: const Text('Eliminar equipo'),
-                                        content: const Text(
-                                          '¿Deseas eliminar este equipo?',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, false),
-                                            child: const Text('Cancelar'),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, true),
-                                            child: const Text('Eliminar'),
-                                          ),
-                                        ],
-                                      ),
+                                    final confirm = await _confirmDelete(
+                                      context,
                                     );
                                     if (confirm == true) {
                                       final useCase = ref.read(
@@ -594,6 +584,4 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
           ),
         );
   }
-
-  // Eliminado: hoja de analizador IA
 }
