@@ -25,7 +25,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final isLoading = authState.isLoading; // usamos para deshabilitar si hay otra operación
+    final isLoading =
+        authState.isLoading; // usamos para deshabilitar si hay otra operación
     return AuthLayout(
       title: 'Recuperar contraseña',
       subtitle: 'Te enviaremos un enlace para restablecerla.',
@@ -57,7 +58,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         final email = _emailController.text.trim();
                         // Usar URL fija desde .env si está definida; si no, origin actual
                         final fixed = dotenv.env['RESET_REDIRECT_URL'];
-                        final redirect = fixed ?? '${Uri.base.origin}${AuthConstants.defaultResetPath}';
+                        final redirect =
+                            fixed ??
+                            '${Uri.base.origin}${AuthConstants.defaultResetPath}';
                         // Hoist messenger/navigator to avoid using context after await
                         // ignore: use_build_context_synchronously
                         final messenger = ScaffoldMessenger.of(context);
@@ -65,10 +68,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         final navigator = Navigator.of(context);
                         await ref
                             .read(authControllerProvider.notifier)
-                            .sendPasswordResetEmail(email, redirectTo: redirect);
+                            .sendPasswordResetEmail(
+                              email,
+                              redirectTo: redirect,
+                            );
                         if (!mounted) return;
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Revisa tu correo para continuar')),
+                          const SnackBar(
+                            content: Text('Revisa tu correo para continuar'),
+                          ),
                         );
                         navigator.pop();
                       } catch (e) {

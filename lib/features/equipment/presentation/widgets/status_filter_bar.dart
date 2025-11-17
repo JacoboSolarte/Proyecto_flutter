@@ -30,16 +30,41 @@ class StatusFilterBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
           _statusChip(context, null, 'Todos', count: total),
-          _statusChip(context, EquipmentStatus.operativo, EquipmentStatus.label(EquipmentStatus.operativo), count: countOperativo),
-          _statusChip(context, EquipmentStatus.mantenimiento, EquipmentStatus.label(EquipmentStatus.mantenimiento), count: countMantenimiento),
-          _statusChip(context, EquipmentStatus.fueraDeServicio, EquipmentStatus.label(EquipmentStatus.fueraDeServicio), count: countFueraServicio),
-          _statusChip(context, EquipmentStatus.requiereSeguimiento, EquipmentStatus.label(EquipmentStatus.requiereSeguimiento), count: countSeguimiento),
+          _statusChip(
+            context,
+            EquipmentStatus.operativo,
+            EquipmentStatus.label(EquipmentStatus.operativo),
+            count: countOperativo,
+          ),
+          _statusChip(
+            context,
+            EquipmentStatus.mantenimiento,
+            EquipmentStatus.label(EquipmentStatus.mantenimiento),
+            count: countMantenimiento,
+          ),
+          _statusChip(
+            context,
+            EquipmentStatus.fueraDeServicio,
+            EquipmentStatus.label(EquipmentStatus.fueraDeServicio),
+            count: countFueraServicio,
+          ),
+          _statusChip(
+            context,
+            EquipmentStatus.requiereSeguimiento,
+            EquipmentStatus.label(EquipmentStatus.requiereSeguimiento),
+            count: countSeguimiento,
+          ),
         ],
       ),
     );
   }
 
-  Widget _statusChip(BuildContext context, String? value, String label, {int? count}) {
+  Widget _statusChip(
+    BuildContext context,
+    String? value,
+    String label, {
+    int? count,
+  }) {
     final selected = selectedStatus == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),

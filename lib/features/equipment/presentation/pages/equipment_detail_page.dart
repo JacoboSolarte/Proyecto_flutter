@@ -19,7 +19,10 @@ Future<void> _downloadQrForEquipment(BuildContext context, Equipment eq) async {
       eyeStyle: const QrEyeStyle(color: Color(0xFF000000)),
       dataModuleStyle: const QrDataModuleStyle(color: Color(0xFF000000)),
     );
-    final byteData = await painter.toImageData(1024, format: ui.ImageByteFormat.png);
+    final byteData = await painter.toImageData(
+      1024,
+      format: ui.ImageByteFormat.png,
+    );
     final bytes = byteData?.buffer.asUint8List();
     if (bytes == null) {
       throw Exception('No se pudo generar la imagen del QR');
@@ -41,9 +44,9 @@ Future<void> _downloadQrForEquipment(BuildContext context, Equipment eq) async {
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al descargar QR: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al descargar QR: $e')));
     }
   }
 }
@@ -51,14 +54,20 @@ Future<void> _downloadQrForEquipment(BuildContext context, Equipment eq) async {
 Future<String?> _fetchLatestImageUrl(String equipmentId) async {
   try {
     final client = Supabase.instance.client;
-    final files = await client.storage.from('images').list(path: 'equipment/$equipmentId');
+    final files = await client.storage
+        .from('images')
+        .list(path: 'equipment/$equipmentId');
     if (files.isEmpty) return null;
     DateTime parseDate(dynamic v) {
       if (v == null) return DateTime.fromMillisecondsSinceEpoch(0);
       if (v is DateTime) return v;
-      return DateTime.tryParse(v.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return DateTime.tryParse(v.toString()) ??
+          DateTime.fromMillisecondsSinceEpoch(0);
     }
-    files.sort((a, b) => parseDate(b.createdAt).compareTo(parseDate(a.createdAt)));
+
+    files.sort(
+      (a, b) => parseDate(b.createdAt).compareTo(parseDate(a.createdAt)),
+    );
     final latest = files.first;
     final path = 'equipment/$equipmentId/${latest.name}';
     final url = client.storage.from('images').getPublicUrl(path);
@@ -98,7 +107,9 @@ class EquipmentDetailPage extends ConsumerWidget {
               icon: const Icon(Icons.edit),
               onPressed: () async {
                 final updated = await Navigator.of(context).push<Equipment?>(
-                  MaterialPageRoute(builder: (_) => EquipmentFormPage(existing: eq)),
+                  MaterialPageRoute(
+                    builder: (_) => EquipmentFormPage(existing: eq),
+                  ),
                 );
                 if (updated != null && context.mounted) {
                   // Devuelve el equipo actualizado al listado para reflejar cambios de inmediato
@@ -130,7 +141,8 @@ class _DetailContent extends StatelessWidget {
 
   Color _statusColor(String s) {
     if (s == EquipmentStatus.operativo) return Colors.green.shade100;
-    if (s == EquipmentStatus.mantenimiento || s == EquipmentStatus.requiereSeguimiento) {
+    if (s == EquipmentStatus.mantenimiento ||
+        s == EquipmentStatus.requiereSeguimiento) {
       return Colors.amber.shade100;
     }
     return Colors.red.shade100;
@@ -193,7 +205,9 @@ class _DetailContent extends StatelessWidget {
       MapEntry('Creado por', eq.createdBy),
     ];
 
-    final visibleItems = items.where((it) => it.value != null && it.value!.isNotEmpty).toList();
+    final visibleItems = items
+        .where((it) => it.value != null && it.value!.isNotEmpty)
+        .toList();
 
     return SingleChildScrollView(
       child: Padding(
@@ -222,7 +236,9 @@ class _DetailContent extends StatelessWidget {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Card(
                         elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: const SizedBox(
                           height: 180,
                           child: Center(child: CircularProgressIndicator()),
@@ -233,7 +249,9 @@ class _DetailContent extends StatelessWidget {
                     if (url == null || url.isEmpty) {
                       return Card(
                         elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Container(
                           height: 200,
                           alignment: Alignment.center,
@@ -245,7 +263,9 @@ class _DetailContent extends StatelessWidget {
                     return Card(
                       elevation: 3,
                       clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Image.network(
                         url,
                         height: 200,
@@ -264,13 +284,18 @@ class _DetailContent extends StatelessWidget {
 
                 Widget qrSection = Card(
                   elevation: 3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Código QR', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          'Código QR',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 8),
                         Center(
                           child: QrImageView(
@@ -309,7 +334,10 @@ class _DetailContent extends StatelessWidget {
             ...[
               for (final it in visibleItems) ...[
                 ListTile(
-                  leading: Icon(_iconForKey(it.key), color: Colors.grey.shade700),
+                  leading: Icon(
+                    _iconForKey(it.key),
+                    color: Colors.grey.shade700,
+                  ),
                   title: Text(
                     it.key,
                     style: const TextStyle(fontWeight: FontWeight.w600),
@@ -317,7 +345,7 @@ class _DetailContent extends StatelessWidget {
                   subtitle: Text(it.value!),
                 ),
                 const Divider(height: 1),
-              ]
+              ],
             ],
             const SizedBox(height: 12),
             // Acciones movidas al AppBar superior derecho

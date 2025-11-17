@@ -203,7 +203,8 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                             value: _maintenanceType,
                             items: maintenanceTypeOptions,
                             onChanged: (v) => setState(
-                              () => _maintenanceType = v ?? MaintenanceTypes.preventivo,
+                              () => _maintenanceType =
+                                  v ?? MaintenanceTypes.preventivo,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -228,8 +229,10 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                             label: 'Estado final del equipo',
                             value: _finalStatus,
                             items: equipmentStatusOptions,
-                            onChanged: (v) =>
-                                setState(() => _finalStatus = v ?? EquipmentStatus.operativo),
+                            onChanged: (v) => setState(
+                              () =>
+                                  _finalStatus = v ?? EquipmentStatus.operativo,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           _DateField(

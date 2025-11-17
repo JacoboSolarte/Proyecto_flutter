@@ -19,6 +19,7 @@ import '../widgets/status_filter_bar.dart';
 import '../widgets/skeleton_card.dart';
 import '../widgets/empty_state.dart';
 import '../../constants/status.dart';
+import 'analysis_history_page.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -101,6 +102,15 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
             tooltip: 'Analizar imagen (IA)',
             icon: const Icon(Icons.smart_toy_outlined),
             onPressed: _openImageAnalyzerSheet,
+          ),
+          IconButton(
+            tooltip: 'Historial',
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AnalysisHistoryPage()),
+              );
+            },
           ),
           IconButton(
             tooltip: 'Salir',
@@ -547,15 +557,24 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                       setState(() => _isSearchOpen = true);
                     },
                   ),
-                  IconButton(
-                    tooltip: 'Perfil',
-                    icon: const Icon(Icons.person),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ProfilePage()),
-                      );
-                    },
-                  ),
+  IconButton(
+    tooltip: 'Perfil',
+    icon: const Icon(Icons.person),
+    onPressed: () {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProfilePage()),
+      );
+    },
+  ),
+  IconButton(
+    tooltip: 'Historial',
+    icon: const Icon(Icons.history),
+    onPressed: () {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const AnalysisHistoryPage()),
+      );
+    },
+  ),
                 ],
               ],
             ),

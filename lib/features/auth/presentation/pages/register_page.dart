@@ -178,27 +178,38 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 _nameController.text.trim(),
                               );
                           // Guardar perfil extendido
-                          await ref.read(profileControllerProvider.notifier).upsertCurrent(
+                          await ref
+                              .read(profileControllerProvider.notifier)
+                              .upsertCurrent(
                                 fullName: _nameController.text.trim(),
                                 phone: _phoneController.text.trim().isEmpty
                                     ? null
                                     : _phoneController.text.trim(),
-                                organization: _organizationController.text.trim().isEmpty
+                                organization:
+                                    _organizationController.text.trim().isEmpty
                                     ? null
                                     : _organizationController.text.trim(),
-                                department: _departmentController.text.trim().isEmpty
+                                department:
+                                    _departmentController.text.trim().isEmpty
                                     ? null
                                     : _departmentController.text.trim(),
-                                role: _roleController.text.trim().isEmpty ? null : _roleController.text.trim(),
+                                role: _roleController.text.trim().isEmpty
+                                    ? null
+                                    : _roleController.text.trim(),
                                 jobTitle:
-                                    _jobTitleController.text.trim().isEmpty ? null : _jobTitleController.text.trim(),
-                                documentId: _documentIdController.text.trim().isEmpty
+                                    _jobTitleController.text.trim().isEmpty
+                                    ? null
+                                    : _jobTitleController.text.trim(),
+                                documentId:
+                                    _documentIdController.text.trim().isEmpty
                                     ? null
                                     : _documentIdController.text.trim(),
                                 address: _addressController.text.trim().isEmpty
                                     ? null
                                     : _addressController.text.trim(),
-                                bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+                                bio: _bioController.text.trim().isEmpty
+                                    ? null
+                                    : _bioController.text.trim(),
                               );
                           if (mounted) navigator.pop();
                         } catch (_) {}

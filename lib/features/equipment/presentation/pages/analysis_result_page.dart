@@ -46,7 +46,13 @@ class AnalysisResultPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Respuesta', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Respuesta',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       SelectableText(
                         contentText,
@@ -59,10 +65,15 @@ class AnalysisResultPage extends StatelessWidget {
                           icon: const Icon(Icons.copy),
                           label: const Text('Copiar'),
                           onPressed: () async {
-                            await Clipboard.setData(ClipboardData(text: contentText));
+                            await Clipboard.setData(
+                              ClipboardData(text: contentText),
+                            );
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(content: Text('Respuesta copiada')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Respuesta copiada'),
+                                ),
+                              );
                             }
                           },
                         ),

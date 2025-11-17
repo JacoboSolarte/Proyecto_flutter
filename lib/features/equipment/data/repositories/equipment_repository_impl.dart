@@ -9,14 +9,20 @@ class EquipmentRepositoryImpl implements EquipmentRepository {
   EquipmentRepositoryImpl(this._client);
 
   @override
-  Future<List<Equipment>> list({int limit = 20, int offset = 0, EquipmentQuery? query}) async {
+  Future<List<Equipment>> list({
+    int limit = 20,
+    int offset = 0,
+    EquipmentQuery? query,
+  }) async {
     var builder = _client.from(_table).select('*');
     if (query != null) {
       final search = query.search;
       final status = query.status;
       final location = query.location;
       if (search != null && search.isNotEmpty) {
-        builder = builder.or('name.ilike.%$search%,brand.ilike.%$search%,model.ilike.%$search%,serial.ilike.%$search%,location.ilike.%$search%');
+        builder = builder.or(
+          'name.ilike.%$search%,brand.ilike.%$search%,model.ilike.%$search%,serial.ilike.%$search%,location.ilike.%$search%',
+        );
       }
       if (status != null && status.isNotEmpty) {
         builder = builder.eq('status', status);
@@ -25,9 +31,13 @@ class EquipmentRepositoryImpl implements EquipmentRepository {
         builder = builder.ilike('location', '%$location%');
       }
     }
-    final data = await builder.order('created_at', ascending: false).range(offset, offset + limit - 1);
+    final data = await builder
+        .order('created_at', ascending: false)
+        .range(offset, offset + limit - 1);
 
-    final list = (data as List).map((e) => Equipment.fromMap(e as Map<String, dynamic>)).toList();
+    final list = (data as List)
+        .map((e) => Equipment.fromMap(e as Map<String, dynamic>))
+        .toList();
     return list;
   }
 
@@ -38,16 +48,28 @@ class EquipmentRepositoryImpl implements EquipmentRepository {
   }
 
   @override
-  Future<Equipment> create(Equipment equipment, {required String userId}) async {
+  Future<Equipment> create(
+    Equipment equipment, {
+    required String userId,
+  }) async {
     final payload = equipment.toInsertMap(userId: userId);
-    final data = await _client.from(_table).insert(payload).select('*').single();
+    final data = await _client
+        .from(_table)
+        .insert(payload)
+        .select('*')
+        .single();
     return Equipment.fromMap(data);
   }
 
   @override
   Future<Equipment> update(String id, Equipment equipment) async {
     final payload = equipment.toUpdateMap();
-    final data = await _client.from(_table).update(payload).eq('id', id).select('*').single();
+    final data = await _client
+        .from(_table)
+        .update(payload)
+        .eq('id', id)
+        .select('*')
+        .single();
     return Equipment.fromMap(data);
   }
 

@@ -6,11 +6,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
 import '../pages/analysis_result_page.dart';
 import '../utils/notes_utils.dart';
+import '../providers/image_analysis_providers.dart';
+import '../providers/equipment_providers.dart';
+import '../../domain/entities/image_analysis.dart';
 
 class ImageAnalyzerSheet extends StatefulWidget {
   const ImageAnalyzerSheet({super.key});
@@ -193,15 +198,99 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
     try {
       final apiKey = dotenv.maybeGet('GOOGLE_API_KEY') ?? const String.fromEnvironment('GEMINI_API_KEY');
       if (apiKey.isNotEmpty) {
+        // Hoist navigator & messenger to avoid use of BuildContext across async gaps
+        final navigator = Navigator.of(context);
+        final messenger = ScaffoldMessenger.of(context);
         final fb = await _callGeminiDirectFallback(body, apiKey);
         final result = Map<String, dynamic>.from(fb['result'] as Map);
         final modelUsed = fb['model_used']?.toString();
         final rawText = fb['raw_text']?.toString();
+        final notes = stripOptionsFromNotes(
+          (result['notes']?.toString() ?? result['description']?.toString() ?? '').trim(),
+        );
 
         if (!mounted) {
           return;
         }
-        await Navigator.of(context).push(
+        // Persistir el análisis en la BD (si hay usuario autenticado)
+        try {
+          final container = ProviderScope.containerOf(context, listen: false);
+          final supabase = container.read(supabaseClientProvider);
+          final userId = supabase.auth.currentUser?.id;
+          if (userId != null && userId.isNotEmpty) {
+            // Subir la imagen al storage para poder mostrarla en el historial
+            String? publicUrl;
+            try {
+              if (_imageBytes != null) {
+                final safeName = _imageName ?? 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                final path = 'analyses/$userId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
+                await supabase.storage
+                    .from('images')
+                    .uploadBinary(
+                      path,
+                      _imageBytes!,
+                      fileOptions: FileOptions(
+                        contentType: _imageMimeType ?? 'application/octet-stream',
+                        upsert: true,
+                      ),
+                    );
+                publicUrl = supabase.storage.from('images').getPublicUrl(path);
+              }
+            } catch (_) {
+              // Si falla la subida, continuamos guardando el análisis sin imagen
+            }
+            final createUC = container.read(createImageAnalysisUseCaseProvider);
+            try {
+              await createUC(
+                ImageAnalysis(
+                  id: '',
+                  userId: userId,
+                  imageName: _imageName,
+                  mimeType: _imageMimeType,
+                  imageUrl: publicUrl,
+                  model: modelUsed,
+                  notes: notes,
+                  rawText: rawText,
+                ),
+                userId: userId,
+              );
+            } on PostgrestException catch (pg) {
+              // Si el esquema de PostgREST aún no detecta 'image_url' (PGRST204),
+              // intentamos guardar sin la URL para no bloquear la UX.
+              final msg = pg.message?.toLowerCase() ?? '';
+              if (pg.code == 'PGRST204' && msg.contains("image_url")) {
+                await createUC(
+                  ImageAnalysis(
+                    id: '',
+                    userId: userId,
+                    imageName: _imageName,
+                    mimeType: _imageMimeType,
+                    imageUrl: null,
+                    model: modelUsed,
+                    notes: notes,
+                    rawText: rawText,
+                  ),
+                  userId: userId,
+                );
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Guardado sin imagen: refresca la caché de esquema en Supabase para habilitar image_url.'),
+                  ),
+                );
+              } else {
+                rethrow;
+              }
+            }
+          }
+        } catch (saveErr) {
+          // No bloquear la navegación; mostrar aviso si falla el guardado
+          // ignore: use_build_context_synchronously
+          messenger.showSnackBar(
+            SnackBar(content: Text('No se pudo guardar el análisis: $saveErr')),
+          );
+        }
+        await navigator.push(
           MaterialPageRoute(
             builder: (_) => AnalysisResultPage(
               source: 'IA',
@@ -213,9 +302,7 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
                 'serial': result['serial']?.toString() ?? 'Desconocido',
                 'location': 'Desconocido',
                 'vendor': 'Desconocido',
-                'notes': stripOptionsFromNotes(
-                  (result['notes']?.toString() ?? result['description']?.toString() ?? '').trim(),
-                ),
+                'notes': notes,
                 'options_brand': result['brand']?.toString() ?? 'Desconocido',
                 'options_model': result['model']?.toString() ?? 'Desconocido',
                 'options_serial': result['serial']?.toString() ?? 'Desconocido',

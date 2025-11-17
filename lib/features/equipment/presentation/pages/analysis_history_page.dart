@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../domain/entities/image_analysis.dart';
+import '../providers/image_analysis_providers.dart';
+import '../providers/equipment_providers.dart';
+
+class AnalysisHistoryPage extends ConsumerWidget {
+  const AnalysisHistoryPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final client = ref.watch(supabaseClientProvider);
+    final userId = client.auth.currentUser?.id;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Historial de análisis')),
+      body: SafeArea(
+        child: userId == null
+            ? const Center(child: Text('Debes iniciar sesión para ver el historial.'))
+            : Consumer(
+                builder: (context, ref, _) {
+                  final analysesAsync = ref.watch(imageAnalysesByUserProvider(userId));
+                  return analysesAsync.when(
+                    data: (items) => _HistoryList(items: items),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, st) => Center(child: Text('Error al cargar historial: $err')),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+}
+
+class _HistoryList extends StatelessWidget {
+  final List<ImageAnalysis> items;
+  const _HistoryList({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const Center(child: Text('Aún no hay análisis guardados.'));
+    }
+    final df = DateFormat('dd/MM/yyyy HH:mm');
+    return ListView.separated(
+      padding: const EdgeInsets.all(12),
+      itemCount: items.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final a = items[index];
+        final created = a.createdAt != null ? df.format(a.createdAt!) : 'Fecha desconocida';
+        return Card(
+          child: ListTile(
+            leading: (a.imageUrl != null && a.imageUrl!.isNotEmpty)
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      a.imageUrl!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                    ),
+                  )
+                : const Icon(Icons.history),
+            title: Text(a.imageName ?? 'Imagen analizada'),
+            subtitle: Text('${a.model ?? 'Modelo desconocido'} • $created'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // En el futuro podemos navegar a un detalle; por ahora, sólo mostramos snack
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(a.notes?.isNotEmpty == true ? a.notes! : 'Sin notas disponibles')),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}

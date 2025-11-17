@@ -167,7 +167,8 @@ class _MaintenanceSection extends StatelessWidget {
                   separatorBuilder: (_, __) => const Divider(height: 8),
                   itemBuilder: (context, index) {
                     final m = items[index];
-                    final icon = m.maintenanceType == MaintenanceTypes.correctivo
+                    final icon =
+                        m.maintenanceType == MaintenanceTypes.correctivo
                         ? Icons.build
                         : Icons.handyman;
                     final dateStr = formatDate(m.maintenanceDate);
@@ -192,7 +193,9 @@ class _MaintenanceSection extends StatelessWidget {
                             Text('Próximo mantenimiento: $nextStr'),
                         ],
                       ),
-                      trailing: Chip(label: Text(EquipmentStatus.label(m.finalStatus))),
+                      trailing: Chip(
+                        label: Text(EquipmentStatus.label(m.finalStatus)),
+                      ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 0.0,
                       ),

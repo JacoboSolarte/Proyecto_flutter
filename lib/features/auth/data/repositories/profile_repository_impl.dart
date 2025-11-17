@@ -10,7 +10,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<UserProfile?> getById(String userId) async {
-    final res = await _client.from(table).select('*').eq('id', userId).maybeSingle();
+    final res = await _client
+        .from(table)
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
     if (res == null) return null;
     return UserProfile.fromMap(res);
   }

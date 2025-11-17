@@ -39,7 +39,9 @@ class EquipmentCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.precision_manufacturing, size: 24),
@@ -54,7 +56,9 @@ class EquipmentCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             equipment.name,
-                            style: t.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                            style: t.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             softWrap: true,
@@ -69,20 +73,37 @@ class EquipmentCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         if (equipment.brand != null)
-                          _InfoChip(icon: Icons.business, label: 'Marca: ${equipment.brand}'),
+                          _InfoChip(
+                            icon: Icons.business,
+                            label: 'Marca: ${equipment.brand}',
+                          ),
                         if (equipment.model != null)
-                          _InfoChip(icon: Icons.layers, label: 'Modelo: ${equipment.model}'),
+                          _InfoChip(
+                            icon: Icons.layers,
+                            label: 'Modelo: ${equipment.model}',
+                          ),
                         if (equipment.serial != null)
-                          _InfoChip(icon: Icons.qr_code_2, label: 'Serie: ${equipment.serial}'),
+                          _InfoChip(
+                            icon: Icons.qr_code_2,
+                            label: 'Serie: ${equipment.serial}',
+                          ),
                         if (equipment.location != null)
-                          _InfoChip(icon: Icons.place, label: 'Ubicación: ${equipment.location}'),
+                          _InfoChip(
+                            icon: Icons.place,
+                            label: 'Ubicación: ${equipment.location}',
+                          ),
                       ],
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              _ActionsMenu(onEdit: onEdit, onDelete: onDelete, onHeader: onHeader, onAddMaintenance: onAddMaintenance),
+              _ActionsMenu(
+                onEdit: onEdit,
+                onDelete: onDelete,
+                onHeader: onHeader,
+                onAddMaintenance: onAddMaintenance,
+              ),
             ],
           ),
         ),
@@ -140,7 +161,12 @@ class _ActionsMenu extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onHeader;
   final VoidCallback? onAddMaintenance;
-  const _ActionsMenu({this.onEdit, this.onDelete, this.onHeader, this.onAddMaintenance});
+  const _ActionsMenu({
+    this.onEdit,
+    this.onDelete,
+    this.onHeader,
+    this.onAddMaintenance,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -163,10 +189,28 @@ class _ActionsMenu extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(value: EquipmentActions.header, child: ListTile(leading: Icon(Icons.badge), title: Text('Encabezado'))),
-        const PopupMenuItem(value: EquipmentActions.maintenance, child: ListTile(leading: Icon(Icons.build_circle), title: Text('Registrar mantenimiento'))),
-        const PopupMenuItem(value: EquipmentActions.edit, child: ListTile(leading: Icon(Icons.edit), title: Text('Editar'))),
-        const PopupMenuItem(value: EquipmentActions.delete, child: ListTile(leading: Icon(Icons.delete), title: Text('Eliminar'))),
+        const PopupMenuItem(
+          value: EquipmentActions.header,
+          child: ListTile(
+            leading: Icon(Icons.badge),
+            title: Text('Encabezado'),
+          ),
+        ),
+        const PopupMenuItem(
+          value: EquipmentActions.maintenance,
+          child: ListTile(
+            leading: Icon(Icons.build_circle),
+            title: Text('Registrar mantenimiento'),
+          ),
+        ),
+        const PopupMenuItem(
+          value: EquipmentActions.edit,
+          child: ListTile(leading: Icon(Icons.edit), title: Text('Editar')),
+        ),
+        const PopupMenuItem(
+          value: EquipmentActions.delete,
+          child: ListTile(leading: Icon(Icons.delete), title: Text('Eliminar')),
+        ),
       ],
       icon: const Icon(Icons.more_vert),
     );

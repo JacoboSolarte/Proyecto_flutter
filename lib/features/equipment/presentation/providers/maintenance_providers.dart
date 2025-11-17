@@ -11,17 +11,21 @@ final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
   return MaintenanceRepositoryImpl(client);
 });
 
-final createMaintenanceUseCaseProvider = Provider<CreateMaintenanceUseCase>((ref) {
+final createMaintenanceUseCaseProvider = Provider<CreateMaintenanceUseCase>((
+  ref,
+) {
   final repo = ref.watch(maintenanceRepositoryProvider);
   return CreateMaintenanceUseCase(repo);
 });
 
-final listMaintenancesForEquipmentUseCaseProvider = Provider<ListMaintenancesForEquipmentUseCase>((ref) {
-  final repo = ref.watch(maintenanceRepositoryProvider);
-  return ListMaintenancesForEquipmentUseCase(repo);
-});
+final listMaintenancesForEquipmentUseCaseProvider =
+    Provider<ListMaintenancesForEquipmentUseCase>((ref) {
+      final repo = ref.watch(maintenanceRepositoryProvider);
+      return ListMaintenancesForEquipmentUseCase(repo);
+    });
 
-final maintenancesByEquipmentProvider = FutureProvider.autoDispose.family<List<Maintenance>, String>((ref, equipmentId) {
-  final uc = ref.watch(listMaintenancesForEquipmentUseCaseProvider);
-  return uc(equipmentId);
-});
+final maintenancesByEquipmentProvider = FutureProvider.autoDispose
+    .family<List<Maintenance>, String>((ref, equipmentId) {
+      final uc = ref.watch(listMaintenancesForEquipmentUseCaseProvider);
+      return uc(equipmentId);
+    });
