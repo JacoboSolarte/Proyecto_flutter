@@ -140,25 +140,36 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
       final res = await FilePicker.platform.pickFiles(type: FileType.any, withData: true, allowMultiple: false);
       final file = (res != null && res.files.isNotEmpty) ? res.files.first : null;
       final bytes = file?.bytes;
-      if (bytes == null || file == null) return;
+      if (bytes == null || file == null) {
+        return;
+      }
       final name = file.name;
       var mime = lookupMimeType(name, headerBytes: bytes) ?? 'application/octet-stream';
       if (mime == 'application/octet-stream') {
         final header = bytes.take(12).toList();
         final asHex = header.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
-        if (asHex.startsWith('89504e47')) mime = 'image/png';
-        else if (asHex.startsWith('ffd8ff')) mime = 'image/jpeg';
-        else if (asHex.startsWith('52494646') && asHex.contains('57454250')) mime = 'image/webp';
-        else if (asHex.startsWith('424d')) mime = 'image/bmp';
+        if (asHex.startsWith('89504e47')) {
+          mime = 'image/png';
+        } else if (asHex.startsWith('ffd8ff')) {
+          mime = 'image/jpeg';
+        } else if (asHex.startsWith('52494646') && asHex.contains('57454250')) {
+          mime = 'image/webp';
+        } else if (asHex.startsWith('424d')) {
+          mime = 'image/bmp';
+        }
       }
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _imageBytes = bytes;
         _imageName = name;
         _imageMimeType = mime;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al seleccionar imagen: $e')));
     }
   }
@@ -188,7 +199,9 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
         final modelUsed = fb['model_used']?.toString();
         final rawText = fb['raw_text']?.toString();
 
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => AnalysisResultPage(
@@ -227,7 +240,9 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
         SnackBar(content: Text('Error al analizar imagen con IA directa: $e1')),
       );
     } finally {
-      if (mounted) setState(() => _isAnalyzing = false);
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+      }
     }
   }
 
@@ -242,7 +257,7 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
 
     final configuredModel =
         dotenv.maybeGet('GEMINI_MODEL') ?? const String.fromEnvironment('GEMINI_MODEL');
-    final models = (configuredModel != null && configuredModel.trim().isNotEmpty)
+    final models = (configuredModel.trim().isNotEmpty)
         ? [configuredModel.trim()]
         : [
             'gemini-2.0-flash',
@@ -257,7 +272,9 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
 
     String? base64;
     String mime = body['mime_type']?.toString() ?? 'image/jpeg';
-    if (body['mode'] == 'base64') base64 = body['image_base64']?.toString();
+    if (body['mode'] == 'base64') {
+      base64 = body['image_base64']?.toString();
+    }
     if (base64 == null || base64.isEmpty) {
       throw Exception('Imagen no disponible para IA');
     }

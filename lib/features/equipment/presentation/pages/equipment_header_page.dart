@@ -5,6 +5,8 @@ import '../../domain/entities/maintenance.dart';
 import '../providers/equipment_providers.dart';
 import '../providers/maintenance_providers.dart';
 import '../widgets/ui_components.dart';
+import '../../constants/maintenance.dart';
+import '../../constants/status.dart';
 
 class EquipmentHeaderPage extends ConsumerWidget {
   final String equipmentId;
@@ -165,7 +167,7 @@ class _MaintenanceSection extends StatelessWidget {
                   separatorBuilder: (_, __) => const Divider(height: 8),
                   itemBuilder: (context, index) {
                     final m = items[index];
-                    final icon = m.maintenanceType == 'correctivo'
+                    final icon = m.maintenanceType == MaintenanceTypes.correctivo
                         ? Icons.build
                         : Icons.handyman;
                     final dateStr = formatDate(m.maintenanceDate);
@@ -190,7 +192,7 @@ class _MaintenanceSection extends StatelessWidget {
                             Text('Próximo mantenimiento: $nextStr'),
                         ],
                       ),
-                      trailing: Chip(label: Text(_statusLabel(m.finalStatus))),
+                      trailing: Chip(label: Text(EquipmentStatus.label(m.finalStatus))),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 0.0,
                       ),
@@ -205,22 +207,5 @@ class _MaintenanceSection extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime d) {
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  }
-
-  String _statusLabel(String s) {
-    switch (s) {
-      case 'operativo':
-        return 'Operativo';
-      case 'mantenimiento':
-        return 'Mantenimiento';
-      case 'fuera_de_servicio':
-        return 'Fuera de servicio';
-      case 'requiere_seguimiento':
-        return 'Requiere seguimiento';
-      default:
-        return s;
-    }
-  }
+  // Sin helpers adicionales: se usa formatDate() de ui_components y EquipmentStatus.label()
 }

@@ -6,6 +6,9 @@ import '../providers/equipment_providers.dart';
 import '../../domain/entities/equipment.dart';
 import '../../domain/usecases/update_equipment.dart';
 import '../widgets/ui_components.dart';
+import '../../constants/maintenance.dart';
+import '../../constants/status.dart';
+import '../../../../data/options.dart';
 
 class MaintenanceFormPage extends ConsumerStatefulWidget {
   final String equipmentId;
@@ -20,8 +23,8 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
   final _formKey = GlobalKey<FormState>();
 
   DateTime _maintenanceDate = DateTime.now();
-  String _maintenanceType = 'preventivo';
-  String _finalStatus = 'operativo';
+  String _maintenanceType = MaintenanceTypes.preventivo;
+  String _finalStatus = EquipmentStatus.operativo;
   DateTime? _nextMaintenanceDate;
   final TextEditingController _descriptionCtrl = TextEditingController();
   final TextEditingController _partsCtrl = TextEditingController();
@@ -198,9 +201,9 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                           _DropdownField(
                             label: 'Tipo de mantenimiento',
                             value: _maintenanceType,
-                            items: const ['preventivo', 'correctivo'],
+                            items: maintenanceTypeOptions,
                             onChanged: (v) => setState(
-                              () => _maintenanceType = v ?? 'preventivo',
+                              () => _maintenanceType = v ?? MaintenanceTypes.preventivo,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -224,13 +227,9 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                           _DropdownField(
                             label: 'Estado final del equipo',
                             value: _finalStatus,
-                            items: const [
-                              'operativo',
-                              'requiere_seguimiento',
-                              'fuera_de_servicio',
-                            ],
+                            items: equipmentStatusOptions,
                             onChanged: (v) =>
-                                setState(() => _finalStatus = v ?? 'operativo'),
+                                setState(() => _finalStatus = v ?? EquipmentStatus.operativo),
                           ),
                           const SizedBox(height: 12),
                           _DateField(

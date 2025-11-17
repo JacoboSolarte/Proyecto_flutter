@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/status.dart';
 
 class StatusFilterBar extends StatelessWidget {
   final String? selectedStatus;
@@ -29,10 +30,10 @@ class StatusFilterBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
           _statusChip(context, null, 'Todos', count: total),
-          _statusChip(context, 'operativo', 'Operativo', count: countOperativo),
-          _statusChip(context, 'mantenimiento', 'Mantenimiento', count: countMantenimiento),
-          _statusChip(context, 'fuera_de_servicio', 'Fuera de servicio', count: countFueraServicio),
-          _statusChip(context, 'requiere_seguimiento', 'Requiere seguimiento', count: countSeguimiento),
+          _statusChip(context, EquipmentStatus.operativo, EquipmentStatus.label(EquipmentStatus.operativo), count: countOperativo),
+          _statusChip(context, EquipmentStatus.mantenimiento, EquipmentStatus.label(EquipmentStatus.mantenimiento), count: countMantenimiento),
+          _statusChip(context, EquipmentStatus.fueraDeServicio, EquipmentStatus.label(EquipmentStatus.fueraDeServicio), count: countFueraServicio),
+          _statusChip(context, EquipmentStatus.requiereSeguimiento, EquipmentStatus.label(EquipmentStatus.requiereSeguimiento), count: countSeguimiento),
         ],
       ),
     );

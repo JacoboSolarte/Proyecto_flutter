@@ -18,6 +18,7 @@ import '../widgets/summary_bar.dart';
 import '../widgets/status_filter_bar.dart';
 import '../widgets/skeleton_card.dart';
 import '../widgets/empty_state.dart';
+import '../../constants/status.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -62,16 +63,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
     final items = state.value ?? [];
     // Métricas de resumen para el encabezado
     final total = items.length;
-    final countOperativo = items.where((e) => e.status == 'operativo').length;
-    final countMantenimiento = items
-        .where((e) => e.status == 'mantenimiento')
-        .length;
-    final countFueraServicio = items
-        .where((e) => e.status == 'fuera_de_servicio')
-        .length;
-    final countSeguimiento = items
-        .where((e) => e.status == 'requiere_seguimiento')
-        .length;
+    final countOperativo = items.where((e) => e.status == EquipmentStatus.operativo).length;
+    final countMantenimiento = items.where((e) => e.status == EquipmentStatus.mantenimiento).length;
+    final countFueraServicio = items.where((e) => e.status == EquipmentStatus.fueraDeServicio).length;
+    final countSeguimiento = items.where((e) => e.status == EquipmentStatus.requiereSeguimiento).length;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Equipos biomédicos'),

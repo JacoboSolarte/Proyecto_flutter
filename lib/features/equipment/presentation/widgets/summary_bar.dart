@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/status.dart';
 
 class SummaryBar extends StatelessWidget {
   final int total;
@@ -37,28 +38,28 @@ class SummaryBar extends StatelessWidget {
             ),
             _summaryChip(
               context,
-              label: 'Operativo',
+              label: EquipmentStatus.label(EquipmentStatus.operativo),
               icon: Icons.check_circle,
               count: countOperativo,
               color: Colors.green,
             ),
             _summaryChip(
               context,
-              label: 'Mantenimiento',
+              label: EquipmentStatus.label(EquipmentStatus.mantenimiento),
               icon: Icons.build_circle,
               count: countMantenimiento,
               color: Colors.amber,
             ),
             _summaryChip(
               context,
-              label: 'Fuera de servicio',
+              label: EquipmentStatus.label(EquipmentStatus.fueraDeServicio),
               icon: Icons.report,
               count: countFueraServicio,
               color: Colors.red,
             ),
             _summaryChip(
               context,
-              label: 'Seguimiento',
+              label: EquipmentStatus.label(EquipmentStatus.requiereSeguimiento),
               icon: Icons.track_changes,
               count: countSeguimiento,
               color: Colors.blueGrey,

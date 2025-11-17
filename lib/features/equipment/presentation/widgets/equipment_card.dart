@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/equipment_constants.dart';
 import '../../../equipment/domain/entities/equipment.dart';
 import 'equipment_status_chip.dart';
 
@@ -147,25 +148,25 @@ class _ActionsMenu extends StatelessWidget {
       tooltip: 'Más acciones',
       onSelected: (value) async {
         switch (value) {
-          case 'edit':
+          case EquipmentActions.edit:
             onEdit?.call();
             break;
-          case 'delete':
+          case EquipmentActions.delete:
             onDelete?.call();
             break;
-          case 'header':
+          case EquipmentActions.header:
             onHeader?.call();
             break;
-          case 'maintenance':
+          case EquipmentActions.maintenance:
             onAddMaintenance?.call();
             break;
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(value: 'header', child: ListTile(leading: Icon(Icons.badge), title: Text('Encabezado'))),
-        const PopupMenuItem(value: 'maintenance', child: ListTile(leading: Icon(Icons.build_circle), title: Text('Registrar mantenimiento'))),
-        const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Editar'))),
-        const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete), title: Text('Eliminar'))),
+        const PopupMenuItem(value: EquipmentActions.header, child: ListTile(leading: Icon(Icons.badge), title: Text('Encabezado'))),
+        const PopupMenuItem(value: EquipmentActions.maintenance, child: ListTile(leading: Icon(Icons.build_circle), title: Text('Registrar mantenimiento'))),
+        const PopupMenuItem(value: EquipmentActions.edit, child: ListTile(leading: Icon(Icons.edit), title: Text('Editar'))),
+        const PopupMenuItem(value: EquipmentActions.delete, child: ListTile(leading: Icon(Icons.delete), title: Text('Eliminar'))),
       ],
       icon: const Icon(Icons.more_vert),
     );

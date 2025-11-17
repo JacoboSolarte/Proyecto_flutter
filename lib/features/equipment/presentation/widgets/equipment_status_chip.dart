@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/status.dart';
 
 class EquipmentStatusChip extends StatelessWidget {
   final String status;
@@ -8,21 +9,15 @@ class EquipmentStatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final Map<String, Color> colors = {
-      'operativo': Colors.green,
-      'mantenimiento': Colors.orange,
-      'fuera_de_servicio': Colors.red,
-      'requiere_seguimiento': Colors.amber,
+      EquipmentStatus.operativo: Colors.green,
+      EquipmentStatus.mantenimiento: Colors.orange,
+      EquipmentStatus.fueraDeServicio: Colors.red,
+      EquipmentStatus.requiereSeguimiento: Colors.amber,
     };
     final Color base = colors[status] ?? scheme.primary;
     final Color bg = base.withValues(alpha: 0.15);
     final Color fg = base;
-    String label = switch (status) {
-      'operativo' => 'Operativo',
-      'mantenimiento' => 'Mantenimiento',
-      'fuera_de_servicio' => 'Fuera de servicio',
-      'requiere_seguimiento' => 'Requiere seguimiento',
-      _ => status,
-    };
+    final String label = EquipmentStatus.label(status);
     return Chip(
       label: Text(label),
       labelStyle: TextStyle(color: fg, fontWeight: FontWeight.w600),

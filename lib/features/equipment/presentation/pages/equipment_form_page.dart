@@ -8,6 +8,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:mime/mime.dart';
 import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
+import '../../constants/status.dart';
+import '../../../../data/options.dart';
 
 class EquipmentFormPage extends ConsumerStatefulWidget {
   final Equipment? existing;
@@ -26,7 +28,7 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
   final _locationCtrl = TextEditingController();
   final _vendorCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-  String _status = 'operativo';
+String _status = EquipmentStatus.operativo;
   Uint8List? _imageBytes;
   String? _imageName;
   String? _imageMimeType;
@@ -104,25 +106,13 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: _status,
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'operativo',
-                      child: Text('Operativo'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'mantenimiento',
-                      child: Text('Mantenimiento'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'requiere_seguimiento',
-                      child: Text('Requiere seguimiento'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'fuera_de_servicio',
-                      child: Text('Fuera de servicio'),
-                    ),
-                  ],
-                  onChanged: (v) => setState(() => _status = v ?? 'operativo'),
+                  items: equipmentStatusOptions
+                      .map((s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(EquipmentStatus.label(s)),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() => _status = v ?? EquipmentStatus.operativo),
                   decoration: const InputDecoration(labelText: 'Estado'),
                 ),
                 const SizedBox(height: 8),

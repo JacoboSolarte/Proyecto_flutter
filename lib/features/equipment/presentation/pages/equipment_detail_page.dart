@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
+import '../../constants/status.dart';
 
 Future<void> _downloadQrForEquipment(BuildContext context, Equipment eq) async {
   try {
@@ -124,15 +125,14 @@ class _DetailContent extends StatelessWidget {
   }
 
   String _fmtStatus(String s) {
-    final t = s.replaceAll('_', ' ').toLowerCase();
-    return t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
+    return EquipmentStatus.label(s);
   }
 
   Color _statusColor(String s) {
-    final t = s.toLowerCase();
-    if (t.contains('operativo')) return Colors.green.shade100;
-    if (t.contains('mantenimiento')) return Colors.amber.shade100;
-    if (t.contains('requiere_seguimiento')) return Colors.amber.shade100;
+    if (s == EquipmentStatus.operativo) return Colors.green.shade100;
+    if (s == EquipmentStatus.mantenimiento || s == EquipmentStatus.requiereSeguimiento) {
+      return Colors.amber.shade100;
+    }
     return Colors.red.shade100;
   }
 

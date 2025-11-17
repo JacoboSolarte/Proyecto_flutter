@@ -1,3 +1,5 @@
+import '../../constants/status.dart';
+
 class Equipment {
   final String id;
   final String name;
@@ -48,7 +50,7 @@ class Equipment {
       model: map['model'] as String?,
       serial: map['serial'] as String?,
       location: map['location'] as String?,
-      status: (map['status'] as String?) ?? 'operativo',
+      status: (map['status'] as String?) ?? EquipmentStatus.operativo,
       purchaseDate: _parseDate(map['purchase_date']),
       lastMaintenanceDate: _parseDate(map['last_maintenance_date']),
       nextMaintenanceDate: _parseDate(map['next_maintenance_date']),
