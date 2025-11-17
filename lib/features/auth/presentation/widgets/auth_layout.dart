@@ -48,7 +48,7 @@ class AuthLayout extends StatelessWidget {
                         subtitle,
                         style: textTheme.bodyMedium?.copyWith(
                           color: primaryBackground
-                              ? scheme.onPrimary.withOpacity(0.85)
+                              ? scheme.onPrimary.withValues(alpha: 0.85)
                               : scheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,

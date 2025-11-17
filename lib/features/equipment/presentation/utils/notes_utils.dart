@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 // Utilidades para procesar texto de notas
 String stripOptionsFromNotes(String notes) {
   var s = notes;

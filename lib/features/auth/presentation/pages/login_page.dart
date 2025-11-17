@@ -81,6 +81,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ? null
                   : () async {
                       if (_formKey.currentState?.validate() ?? false) {
+                        // Hoist navigator to avoid using context after await
+                        // ignore: use_build_context_synchronously
+                        final navigator = Navigator.of(context);
                         try {
                           await ref
                               .read(authControllerProvider.notifier)
@@ -89,7 +92,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 _passwordController.text.trim(),
                               );
                           if (mounted) {
-                            Navigator.of(context).pop();
+                            navigator.pop();
                           }
                         } catch (_) {}
                       }

@@ -151,7 +151,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
                           );
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
+                        // ignore: use_build_context_synchronously
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
                       }
                     },
               child: isSaving
@@ -163,8 +165,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               onPressed: authState.isLoading
                   ? null
                   : () async {
+                      // Hoist navigator before awaiting
+                      // ignore: use_build_context_synchronously
+                      final navigator = Navigator.of(context);
                       await ref.read(authControllerProvider.notifier).signOut();
-                      if (mounted) Navigator.pop(context);
+                      if (mounted) navigator.pop();
                     },
               child: const Text('Cerrar sesión'),
             ),

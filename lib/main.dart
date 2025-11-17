@@ -5,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/config/supabase_config.dart';
-import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/welcome_page.dart';
 import 'features/equipment/presentation/pages/equipment_list_page.dart';
 import 'features/auth/presentation/pages/reset_password_page.dart';

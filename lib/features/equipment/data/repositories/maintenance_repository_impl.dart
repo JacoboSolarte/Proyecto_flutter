@@ -15,7 +15,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         .insert(maintenance.toInsertMap())
         .select()
         .single();
-    return Maintenance.fromMap(response as Map<String, dynamic>);
+    return Maintenance.fromMap(response);
   }
 
   @override
@@ -25,7 +25,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         .select()
         .eq('equipment_id', equipmentId)
         .order('maintenance_date', ascending: false);
-    final list = (response as List).cast<Map<String, dynamic>>();
-    return list.map(Maintenance.fromMap).toList();
+    final list = (response as List)
+        .map((e) => Maintenance.fromMap(e as Map<String, dynamic>))
+        .toList();
+    return list;
   }
 }

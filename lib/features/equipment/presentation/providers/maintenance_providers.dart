@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/maintenance_repository_impl.dart';
 import '../../domain/repositories/maintenance_repository.dart';
 import '../../domain/usecases/create_maintenance.dart';

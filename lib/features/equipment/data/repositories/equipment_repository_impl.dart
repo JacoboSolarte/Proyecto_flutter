@@ -34,21 +34,21 @@ class EquipmentRepositoryImpl implements EquipmentRepository {
   @override
   Future<Equipment> getById(String id) async {
     final data = await _client.from(_table).select('*').eq('id', id).single();
-    return Equipment.fromMap(data as Map<String, dynamic>);
+    return Equipment.fromMap(data);
   }
 
   @override
   Future<Equipment> create(Equipment equipment, {required String userId}) async {
     final payload = equipment.toInsertMap(userId: userId);
     final data = await _client.from(_table).insert(payload).select('*').single();
-    return Equipment.fromMap(data as Map<String, dynamic>);
+    return Equipment.fromMap(data);
   }
 
   @override
   Future<Equipment> update(String id, Equipment equipment) async {
     final payload = equipment.toUpdateMap();
     final data = await _client.from(_table).update(payload).eq('id', id).select('*').single();
-    return Equipment.fromMap(data as Map<String, dynamic>);
+    return Equipment.fromMap(data);
   }
 
   @override

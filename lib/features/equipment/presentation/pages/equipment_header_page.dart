@@ -26,7 +26,7 @@ class EquipmentHeaderPage extends ConsumerWidget {
         appBar: const _HeaderAppBar(),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('Error cargando equipo: ' + e.toString()),
+          child: Text('Error cargando equipo: ${e.toString()}'),
         ),
       ),
       data: (eq) => Scaffold(
@@ -155,7 +155,7 @@ class _MaintenanceSection extends StatelessWidget {
                 ),
               ),
               error: (e, st) =>
-                  Text('Error cargando mantenimientos: ' + e.toString()),
+                  Text('Error cargando mantenimientos: ${e.toString()}'),
               data: (items) {
                 if (items.isEmpty) {
                   return const Text('Sin registros de mantenimiento.');

@@ -78,8 +78,8 @@ class SummaryBar extends StatelessWidget {
     required Color color,
   }) {
     final scheme = Theme.of(context).colorScheme;
-    final bg = color.withOpacity(0.10);
-    final border = color.withOpacity(0.25);
+    final bg = color.withValues(alpha: 0.10);
+    final border = color.withValues(alpha: 0.25);
     return Chip(
       avatar: Icon(icon, color: color, size: 18),
       label: Text('$label: $count', style: TextStyle(color: scheme.onSurface)),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/profile_providers.dart';
-import '../../../../core/ui/transitions.dart';
 import '../widgets/auth_layout.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -50,6 +49,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       title: 'Crear cuenta',
       subtitle: 'Regístrate para comenzar a gestionar tus equipos.',
       primaryBackground: true,
+      // ignore: sort_child_properties_last
       child: Form(
         key: _formKey,
         child: Column(
@@ -166,6 +166,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   ? null
                   : () async {
                       if (_formKey.currentState?.validate() ?? false) {
+                        // Hoist navigator to avoid using context after await
+                        // ignore: use_build_context_synchronously
+                        final navigator = Navigator.of(context);
                         try {
                           await ref
                               .read(authControllerProvider.notifier)
@@ -197,7 +200,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                     : _addressController.text.trim(),
                                 bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
                               );
-                          if (mounted) Navigator.pop(context);
+                          if (mounted) navigator.pop();
                         } catch (_) {}
                       }
                     },

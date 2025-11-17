@@ -235,6 +235,10 @@ String _status = EquipmentStatus.operativo;
                 ElevatedButton(
                   onPressed: () async {
                     if (!(_formKey.currentState?.validate() ?? false)) return;
+                    // ignore: use_build_context_synchronously
+                    final messenger = ScaffoldMessenger.of(context);
+                    // ignore: use_build_context_synchronously
+                    final navigator = Navigator.of(context);
                     final equipment = Equipment(
                       id: widget.existing?.id ?? 'temp',
                       name: _nameCtrl.text.trim(),
@@ -264,7 +268,8 @@ String _status = EquipmentStatus.operativo;
                           Supabase.instance.client.auth.currentUser?.id;
                       if (userId == null) {
                         if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        // ignore: use_build_context_synchronously
+                        messenger.showSnackBar(
                           const SnackBar(content: Text('Sesión no válida')),
                         );
                         return;
@@ -273,7 +278,9 @@ String _status = EquipmentStatus.operativo;
                       if (_imageBytes != null) {
                         await _uploadImage(equipmentId: created.id);
                       }
-                      if (mounted) Navigator.pop(context, created);
+                      if (!context.mounted) return;
+                      // ignore: use_build_context_synchronously
+                      navigator.pop(created);
                     } else {
                       final useCase = ref.read(updateEquipmentUseCaseProvider);
                       final updated = await useCase(
@@ -283,7 +290,9 @@ String _status = EquipmentStatus.operativo;
                       if (_imageBytes != null) {
                         await _uploadImage(equipmentId: widget.existing!.id);
                       }
-                      if (mounted) Navigator.pop(context, updated);
+                      if (!context.mounted) return;
+                      // ignore: use_build_context_synchronously
+                      navigator.pop(updated);
                     }
                   },
                   child: Text(isEdit ? 'Guardar cambios' : 'Crear equipo'),
@@ -297,6 +306,8 @@ String _status = EquipmentStatus.operativo;
   }
 
   Future<void> _pickFromCamera() async {
+    // ignore: use_build_context_synchronously
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final picker = ImagePicker();
       final xfile = await picker.pickImage(
@@ -308,6 +319,7 @@ String _status = EquipmentStatus.operativo;
       final name = xfile.name;
       final mime = lookupMimeType(name, headerBytes: bytes) ?? 'image/jpeg';
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       setState(() {
         _imageBytes = bytes;
         _imageName = name;
@@ -315,9 +327,8 @@ String _status = EquipmentStatus.operativo;
       });
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al tomar foto: $e')));
+      // ignore: use_build_context_synchronously
+      messenger.showSnackBar(SnackBar(content: Text('Error al tomar foto: $e')));
     }
   }
 
@@ -344,16 +355,18 @@ String _status = EquipmentStatus.operativo;
         final asHex = header
             .map((b) => b.toRadixString(16).padLeft(2, '0'))
             .join();
-        if (asHex.startsWith('89504e47'))
+        if (asHex.startsWith('89504e47')) {
           mime = 'image/png';
-        else if (asHex.startsWith('ffd8ff'))
+        } else if (asHex.startsWith('ffd8ff')) {
           mime = 'image/jpeg';
-        else if (asHex.startsWith('52494646') && asHex.contains('57454250'))
+        } else if (asHex.startsWith('52494646') && asHex.contains('57454250')) {
           mime = 'image/webp';
-        else if (asHex.startsWith('424d'))
+        } else if (asHex.startsWith('424d')) {
           mime = 'image/bmp';
+        }
       }
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       setState(() {
         _imageBytes = bytes;
         _imageName = name;
@@ -361,6 +374,7 @@ String _status = EquipmentStatus.operativo;
       });
     } catch (e) {
       if (!context.mounted) return;
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al seleccionar imagen: $e')),
       );
@@ -368,11 +382,13 @@ String _status = EquipmentStatus.operativo;
   }
 
   Future<void> _uploadImage({required String equipmentId}) async {
+    // ignore: use_build_context_synchronously
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Debes iniciar sesión para subir imágenes'),
           ),
@@ -393,14 +409,12 @@ String _status = EquipmentStatus.operativo;
             ),
           );
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Imagen subida correctamente')),
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al subir imagen: $e')));
+      messenger.showSnackBar(SnackBar(content: Text('Error al subir imagen: $e')));
     }
   }
 

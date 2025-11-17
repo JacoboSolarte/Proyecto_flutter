@@ -38,7 +38,7 @@ class Equipment {
   });
 
   factory Equipment.fromMap(Map<String, dynamic> map) {
-    DateTime? _parseDate(dynamic v) {
+    DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       return DateTime.tryParse(v.toString());
     }
@@ -51,14 +51,14 @@ class Equipment {
       serial: map['serial'] as String?,
       location: map['location'] as String?,
       status: (map['status'] as String?) ?? EquipmentStatus.operativo,
-      purchaseDate: _parseDate(map['purchase_date']),
-      lastMaintenanceDate: _parseDate(map['last_maintenance_date']),
-      nextMaintenanceDate: _parseDate(map['next_maintenance_date']),
+      purchaseDate: parseDate(map['purchase_date']),
+      lastMaintenanceDate: parseDate(map['last_maintenance_date']),
+      nextMaintenanceDate: parseDate(map['next_maintenance_date']),
       vendor: map['vendor'] as String?,
-      warrantyExpireDate: _parseDate(map['warranty_expire_date']),
+      warrantyExpireDate: parseDate(map['warranty_expire_date']),
       notes: map['notes'] as String?,
-      createdAt: _parseDate(map['created_at']),
-      updatedAt: _parseDate(map['updated_at']),
+      createdAt: parseDate(map['created_at']),
+      updatedAt: parseDate(map['updated_at']),
       createdBy: map['created_by'] as String?,
     );
   }

@@ -39,7 +39,7 @@ class EquipmentCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.10),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.precision_manufacturing, size: 24),

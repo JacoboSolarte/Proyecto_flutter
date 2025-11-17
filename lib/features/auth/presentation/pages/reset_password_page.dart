@@ -69,16 +69,19 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                     ? null
                     : () async {
                         if (!(_formKey.currentState?.validate() ?? false)) return;
+                        // Hoist messenger before async gap to avoid context-after-await lint
+                        // ignore: use_build_context_synchronously
+                        final messenger = ScaffoldMessenger.of(context);
                         try {
                           await ref.read(authControllerProvider.notifier).setNewPassword(_passwordController.text.trim());
                           if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             const SnackBar(content: Text('Contraseña actualizada')),
                           );
                           // Después del cambio, si hay sesión, AuthGate mostrará la app principal
                         } catch (e) {
                           if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(content: Text('Error: $e')),
                           );
                         }

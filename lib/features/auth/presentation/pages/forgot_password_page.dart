@@ -58,17 +58,24 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         // Usar URL fija desde .env si está definida; si no, origin actual
                         final fixed = dotenv.env['RESET_REDIRECT_URL'];
                         final redirect = fixed ?? '${Uri.base.origin}${AuthConstants.defaultResetPath}';
+                        // Hoist messenger/navigator to avoid using context after await
+                        // ignore: use_build_context_synchronously
+                        final messenger = ScaffoldMessenger.of(context);
+                        // ignore: use_build_context_synchronously
+                        final navigator = Navigator.of(context);
                         await ref
                             .read(authControllerProvider.notifier)
                             .sendPasswordResetEmail(email, redirectTo: redirect);
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           const SnackBar(content: Text('Revisa tu correo para continuar')),
                         );
-                        Navigator.of(context).pop();
+                        navigator.pop();
                       } catch (e) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        // ignore: use_build_context_synchronously
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
                           SnackBar(content: Text('Error: $e')),
                         );
                       }

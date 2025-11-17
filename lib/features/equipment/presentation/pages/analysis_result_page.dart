@@ -17,7 +17,6 @@ class AnalysisResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = (fields['name'] ?? '').trim();
     final description = (fields['notes'] ?? '').trim();
     // Mostrar únicamente el párrafo de respuesta (notes). Si está vacío, mostrar mensaje genérico.
     final contentText = description.isNotEmpty

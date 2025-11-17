@@ -4,7 +4,6 @@ import '../../domain/entities/maintenance.dart';
 import '../providers/maintenance_providers.dart';
 import '../providers/equipment_providers.dart';
 import '../../domain/entities/equipment.dart';
-import '../../domain/usecases/update_equipment.dart';
 import '../widgets/ui_components.dart';
 import '../../constants/maintenance.dart';
 import '../../constants/status.dart';
@@ -90,6 +89,10 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
       nextMaintenanceDate: _nextMaintenanceDate,
     );
 
+    // ignore: use_build_context_synchronously
+    final messenger = ScaffoldMessenger.of(context);
+    // ignore: use_build_context_synchronously
+    final navigator = Navigator.of(context);
     try {
       await createMaint(maint);
       final updatedEq = Equipment(
@@ -111,16 +114,13 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
         createdBy: eq.createdBy,
       );
       await updater(eq.id, updatedEq);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mantenimiento registrado')),
-        );
-        Navigator.of(context).pop(true);
-      }
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Mantenimiento registrado')),
+      );
+      navigator.pop(true);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      messenger.showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
@@ -136,7 +136,7 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
         appBar: const _FormAppBar(),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('Error cargando equipo: ' + e.toString()),
+          child: Text('Error cargando equipo: ${e.toString()}'),
         ),
       ),
       data: (eq) => Scaffold(
@@ -398,8 +398,9 @@ class _TextField extends StatelessWidget {
         border: const OutlineInputBorder(),
       ),
       validator: (v) {
-        if (requiredField && (v == null || v.trim().isEmpty))
+        if (requiredField && (v == null || v.trim().isEmpty)) {
           return 'Campo requerido';
+        }
         return null;
       },
     );
