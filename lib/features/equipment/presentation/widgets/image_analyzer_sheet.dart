@@ -257,7 +257,7 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
             } on PostgrestException catch (pg) {
               // Si el esquema de PostgREST aún no detecta 'image_url' (PGRST204),
               // intentamos guardar sin la URL para no bloquear la UX.
-              final msg = pg.message?.toLowerCase() ?? '';
+              final msg = pg.message.toLowerCase();
               if (pg.code == 'PGRST204' && msg.contains("image_url")) {
                 await createUC(
                   ImageAnalysis(
