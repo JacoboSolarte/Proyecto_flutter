@@ -25,8 +25,11 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // Cambiamos el esquema de color a un azul para un look móvil limpio
-    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+    // Paleta médica Material 3: azul clínico + acento teal
+    final _baseScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+    final colorScheme = _baseScheme.copyWith(
+      secondary: Colors.teal,
+    );
     return MaterialApp(
       title: 'Biomedic',
       debugShowCheckedModeBanner: false,
@@ -37,11 +40,15 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.poppinsTextTheme().apply(
           bodyColor: colorScheme.onSurface,
           displayColor: colorScheme.onSurface,
+        ).copyWith(
+          titleLarge: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+          titleMedium: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
-        scaffoldBackgroundColor: colorScheme.surface,
+        // Fondo blanco limpio
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarTheme(
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.onSurface,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           elevation: 0.5,
           centerTitle: true,
           titleTextStyle: const TextStyle(
@@ -92,6 +99,8 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 0,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -106,6 +115,14 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
         pageTransitionsTheme: const PageTransitionsTheme(
