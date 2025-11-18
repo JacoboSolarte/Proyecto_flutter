@@ -9,7 +9,10 @@ class ImageAnalysisRepositoryImpl implements ImageAnalysisRepository {
   ImageAnalysisRepositoryImpl(this._client);
 
   @override
-  Future<ImageAnalysis> create(ImageAnalysis analysis, {required String userId}) async {
+  Future<ImageAnalysis> create(
+    ImageAnalysis analysis, {
+    required String userId,
+  }) async {
     final inserted = await _client
         .from(table)
         .insert(analysis.toInsertMap(userId))
@@ -19,7 +22,10 @@ class ImageAnalysisRepositoryImpl implements ImageAnalysisRepository {
   }
 
   @override
-  Future<List<ImageAnalysis>> listByUser(String userId, {int limit = 20}) async {
+  Future<List<ImageAnalysis>> listByUser(
+    String userId, {
+    int limit = 20,
+  }) async {
     final data = await _client
         .from(table)
         .select()

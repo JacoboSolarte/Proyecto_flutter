@@ -557,24 +557,26 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                       setState(() => _isSearchOpen = true);
                     },
                   ),
-  IconButton(
-    tooltip: 'Perfil',
-    icon: const Icon(Icons.person),
-    onPressed: () {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ProfilePage()),
-      );
-    },
-  ),
-  IconButton(
-    tooltip: 'Historial',
-    icon: const Icon(Icons.history),
-    onPressed: () {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const AnalysisHistoryPage()),
-      );
-    },
-  ),
+                  IconButton(
+                    tooltip: 'Perfil',
+                    icon: const Icon(Icons.person),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    tooltip: 'Historial',
+                    icon: const Icon(Icons.history),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AnalysisHistoryPage(),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ],
             ),

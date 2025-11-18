@@ -19,14 +19,20 @@ class AnalysisHistoryPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Historial de análisis')),
       body: SafeArea(
         child: userId == null
-            ? const Center(child: Text('Debes iniciar sesión para ver el historial.'))
+            ? const Center(
+                child: Text('Debes iniciar sesión para ver el historial.'),
+              )
             : Consumer(
                 builder: (context, ref, _) {
-                  final analysesAsync = ref.watch(imageAnalysesByUserProvider(userId));
+                  final analysesAsync = ref.watch(
+                    imageAnalysesByUserProvider(userId),
+                  );
                   return analysesAsync.when(
                     data: (items) => _HistoryList(items: items),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (err, st) => Center(child: Text('Error al cargar historial: $err')),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (err, st) =>
+                        Center(child: Text('Error al cargar historial: $err')),
                   );
                 },
               ),
@@ -51,7 +57,9 @@ class _HistoryList extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final a = items[index];
-        final created = a.createdAt != null ? df.format(a.createdAt!) : 'Fecha desconocida';
+        final created = a.createdAt != null
+            ? df.format(a.createdAt!)
+            : 'Fecha desconocida';
         Widget leading;
         if (a.imageUrl != null && a.imageUrl!.isNotEmpty) {
           leading = ClipRRect(
@@ -61,7 +69,8 @@ class _HistoryList extends StatelessWidget {
               width: 56,
               height: 56,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.image_not_supported),
             ),
           );
         } else {
@@ -80,7 +89,8 @@ class _HistoryList extends StatelessWidget {
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.image_not_supported),
                 ),
               );
             },
@@ -95,7 +105,13 @@ class _HistoryList extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(a.notes?.isNotEmpty == true ? a.notes! : 'Sin notas disponibles')),
+                SnackBar(
+                  content: Text(
+                    a.notes?.isNotEmpty == true
+                        ? a.notes!
+                        : 'Sin notas disponibles',
+                  ),
+                ),
               );
             },
           ),
@@ -110,7 +126,9 @@ Future<String?> _resolveFallbackImageUrl(ImageAnalysis a) async {
     final client = Supabase.instance.client;
     final userId = a.userId;
     if (userId == null || userId.isEmpty) return null;
-    final files = await client.storage.from('images').list(path: 'analyses/$userId');
+    final files = await client.storage
+        .from('images')
+        .list(path: 'analyses/$userId');
     if (files.isEmpty) return null;
     // Si conocemos el nombre original, intentamos buscar por sufijo
     if (a.imageName != null && a.imageName!.isNotEmpty) {
@@ -125,8 +143,10 @@ Future<String?> _resolveFallbackImageUrl(ImageAnalysis a) async {
     DateTime parse(dynamic v) {
       if (v == null) return DateTime.fromMillisecondsSinceEpoch(0);
       if (v is DateTime) return v;
-      return DateTime.tryParse(v.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return DateTime.tryParse(v.toString()) ??
+          DateTime.fromMillisecondsSinceEpoch(0);
     }
+
     files.sort((a, b) => parse(b.createdAt).compareTo(parse(a.createdAt)));
     final latest = files.first;
     final path = 'analyses/$userId/${latest.name}';

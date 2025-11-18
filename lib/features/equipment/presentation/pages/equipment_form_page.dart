@@ -28,7 +28,7 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
   final _locationCtrl = TextEditingController();
   final _vendorCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-String _status = EquipmentStatus.operativo;
+  String _status = EquipmentStatus.operativo;
   Uint8List? _imageBytes;
   String? _imageName;
   String? _imageMimeType;
@@ -107,12 +107,15 @@ String _status = EquipmentStatus.operativo;
                 DropdownButtonFormField<String>(
                   initialValue: _status,
                   items: equipmentStatusOptions
-                      .map((s) => DropdownMenuItem(
-                            value: s,
-                            child: Text(EquipmentStatus.label(s)),
-                          ))
+                      .map(
+                        (s) => DropdownMenuItem(
+                          value: s,
+                          child: Text(EquipmentStatus.label(s)),
+                        ),
+                      )
                       .toList(),
-                  onChanged: (v) => setState(() => _status = v ?? EquipmentStatus.operativo),
+                  onChanged: (v) =>
+                      setState(() => _status = v ?? EquipmentStatus.operativo),
                   decoration: const InputDecoration(labelText: 'Estado'),
                 ),
                 const SizedBox(height: 8),
@@ -328,7 +331,9 @@ String _status = EquipmentStatus.operativo;
     } catch (e) {
       if (!context.mounted) return;
       // ignore: use_build_context_synchronously
-      messenger.showSnackBar(SnackBar(content: Text('Error al tomar foto: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error al tomar foto: $e')),
+      );
     }
   }
 
@@ -414,7 +419,9 @@ String _status = EquipmentStatus.operativo;
       );
     } catch (e) {
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Error al subir imagen: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error al subir imagen: $e')),
+      );
     }
   }
 
