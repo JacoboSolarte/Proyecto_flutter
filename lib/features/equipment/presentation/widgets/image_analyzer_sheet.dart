@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import '../../data/local_image_analysis_dao.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -301,13 +302,14 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
           return;
         }
         // Persistir el análisis en la BD (si hay usuario autenticado)
+        String? userId; // hoisted para uso en catch
+        String? publicUrl; // hoisted para uso en catch
         try {
           final container = ProviderScope.containerOf(context, listen: false);
           final supabase = container.read(supabaseClientProvider);
-          final userId = supabase.auth.currentUser?.id;
+          userId = supabase.auth.currentUser?.id;
           if (userId != null && userId.isNotEmpty) {
             // Subir la imagen al storage para poder mostrarla en el historial
-            String? publicUrl;
             try {
               if (_imageBytes != null) {
                 final safeName =
@@ -382,6 +384,37 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
           messenger.showSnackBar(
             SnackBar(content: Text('No se pudo guardar el análisis: $saveErr')),
           );
+          try {
+            // Guardado offline: persistimos análisis y bytes de imagen localmente
+            final dao = LocalImageAnalysisDao();
+            await dao.insertPending(
+              analysis: ImageAnalysis(
+                id: '',
+                userId: userId,
+                imageName: _imageName,
+                mimeType: _imageMimeType,
+                imageUrl: publicUrl,
+                model: modelUsed,
+                notes: notes,
+                rawText: rawText,
+                createdAt: DateTime.now(),
+              ),
+              imageBytes: _imageBytes,
+            );
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Guardado offline. Se sincronizará automáticamente al recuperar conexión.',
+                ),
+              ),
+            );
+          } catch (offlineErr) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text('También falló el guardado offline: $offlineErr'),
+              ),
+            );
+          }
         }
         await navigator.push(
           MaterialPageRoute(
