@@ -70,65 +70,81 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil de usuario')),
+      backgroundColor: const Color(0xFFCDE8FF),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                readOnly: true,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Teléfono'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _organizationController,
-                decoration: const InputDecoration(labelText: 'Organización'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _departmentController,
-                decoration: const InputDecoration(labelText: 'Departamento'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _roleController,
-                decoration: const InputDecoration(labelText: 'Rol'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _jobTitleController,
-                decoration: const InputDecoration(labelText: 'Cargo/Puesto'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _documentIdController,
-                decoration: const InputDecoration(
-                  labelText: 'Documento de identidad',
+              Card(
+                elevation: 6,
+                shadowColor: Colors.red.withOpacity(0.45),
+                color: const Color(0xFFFFEBEE),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Dirección'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _bioController,
-                maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Bio/Notas'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(labelText: 'Nombre'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        readOnly: true,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(labelText: 'Teléfono'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _organizationController,
+                        decoration: const InputDecoration(labelText: 'Organización'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _departmentController,
+                        decoration: const InputDecoration(labelText: 'Departamento'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _roleController,
+                        decoration: const InputDecoration(labelText: 'Rol'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _jobTitleController,
+                        decoration: const InputDecoration(labelText: 'Cargo/Puesto'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _documentIdController,
+                        decoration: const InputDecoration(
+                          labelText: 'Documento de identidad',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(labelText: 'Dirección'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _bioController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(labelText: 'Bio/Notas'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -191,14 +207,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 onPressed: authState.isLoading
                     ? null
                     : () async {
-                        // Hoist navigator before awaiting
-                        // ignore: use_build_context_synchronously
-                        final navigator = Navigator.of(context);
-                        await ref
-                            .read(authControllerProvider.notifier)
-                            .signOut();
-                        if (mounted) navigator.pop();
-                      },
+                      // Hoist navigator before awaiting
+                      // ignore: use_build_context_synchronously
+                      final navigator = Navigator.of(context);
+                      await ref
+                          .read(authControllerProvider.notifier)
+                          .signOut();
+                      if (mounted) navigator.pop();
+                    },
                 child: const Text('Cerrar sesión'),
               ),
             ],

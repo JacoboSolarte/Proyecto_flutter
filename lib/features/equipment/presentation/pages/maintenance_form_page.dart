@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/equipment_status_chip.dart';
 import '../../domain/entities/maintenance.dart';
 import '../providers/maintenance_providers.dart';
 import '../providers/equipment_providers.dart';
@@ -130,10 +131,12 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
     return detail.when(
       loading: () => const Scaffold(
         appBar: _FormAppBar(),
+        backgroundColor: Color(0xFFCDE8FF),
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (e, st) => Scaffold(
         appBar: const _FormAppBar(),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text('Error cargando equipo: ${e.toString()}'),
@@ -141,6 +144,7 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
       ),
       data: (eq) => Scaffold(
         appBar: const _FormAppBar(),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -150,7 +154,9 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Card(
-                    elevation: 2,
+                    elevation: 6,
+                    shadowColor: Colors.red.withOpacity(0.45),
+                    color: const Color(0xFFFFEBEE),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -171,7 +177,7 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                               Chip(label: Text('ID: ${eq.id}')),
                               if (eq.location != null)
                                 Chip(label: Text('Ubicación: ${eq.location}')),
-                              Chip(label: Text('Estado actual: ${eq.status}')),
+                              EquipmentStatusChip(status: eq.status),
                             ],
                           ),
                         ],
@@ -180,7 +186,9 @@ class _MaintenanceFormPageState extends ConsumerState<MaintenanceFormPage> {
                   ),
                   const SizedBox(height: 16),
                   Card(
-                    elevation: 2,
+                    elevation: 6,
+                    shadowColor: Colors.red.withOpacity(0.45),
+                    color: const Color(0xFFFFEBEE),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

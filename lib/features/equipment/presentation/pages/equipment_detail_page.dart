@@ -9,6 +9,7 @@ import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
 import 'equipment_form_page.dart';
 import '../../constants/status.dart';
+import '../widgets/equipment_status_chip.dart';
 
 Future<void> _downloadQrForEquipment(BuildContext context, Equipment eq) async {
   try {
@@ -87,10 +88,12 @@ class EquipmentDetailPage extends ConsumerWidget {
     return detail.when(
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('Detalle de equipo')),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('Detalle de equipo')),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: Center(child: Text('Error: $e')),
       ),
       data: (eq) => Scaffold(
@@ -119,6 +122,7 @@ class EquipmentDetailPage extends ConsumerWidget {
             ),
           ],
         ),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: _DetailContent(eq: eq),
       ),
     );
@@ -143,7 +147,10 @@ class _DetailContent extends StatelessWidget {
     if (s == EquipmentStatus.operativo) return Colors.green.shade100;
     if (s == EquipmentStatus.mantenimiento ||
         s == EquipmentStatus.requiereSeguimiento) {
-      return Colors.amber.shade100;
+      // Mantenimiento: ámbar; Seguimiento: azul grisáceo, igual que encabezado
+      return s == EquipmentStatus.mantenimiento
+          ? Colors.amber.shade100
+          : Colors.blueGrey.shade100;
     }
     return Colors.red.shade100;
   }
@@ -219,10 +226,7 @@ class _DetailContent extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Chip(
-                  label: Text(_fmtStatus(eq.status)),
-                  backgroundColor: _statusColor(eq.status),
-                ),
+                EquipmentStatusChip(status: eq.status),
               ],
             ),
             const SizedBox(height: 12),
@@ -235,7 +239,9 @@ class _DetailContent extends StatelessWidget {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Card(
-                        elevation: 3,
+                        elevation: 6,
+                        shadowColor: Colors.red.withOpacity(0.45),
+                        color: const Color(0xFFFFEBEE),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -248,7 +254,9 @@ class _DetailContent extends StatelessWidget {
                     final url = snapshot.data;
                     if (url == null || url.isEmpty) {
                       return Card(
-                        elevation: 3,
+                        elevation: 6,
+                        shadowColor: Colors.red.withOpacity(0.45),
+                        color: const Color(0xFFFFEBEE),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -261,7 +269,9 @@ class _DetailContent extends StatelessWidget {
                       );
                     }
                     return Card(
-                      elevation: 3,
+                      elevation: 6,
+                      shadowColor: Colors.red.withOpacity(0.45),
+                      color: const Color(0xFFFFEBEE),
                       clipBehavior: Clip.antiAlias,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -283,7 +293,9 @@ class _DetailContent extends StatelessWidget {
                 );
 
                 Widget qrSection = Card(
-                  elevation: 3,
+                  elevation: 6,
+                  shadowColor: Colors.red.withOpacity(0.45),
+                  color: const Color(0xFFFFEBEE),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -331,22 +343,35 @@ class _DetailContent extends StatelessWidget {
               },
             ),
             const SizedBox(height: 12),
-            ...[
-              for (final it in visibleItems) ...[
-                ListTile(
-                  leading: Icon(
-                    _iconForKey(it.key),
-                    color: Colors.grey.shade700,
-                  ),
-                  title: Text(
-                    it.key,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(it.value!),
+            Card(
+              elevation: 6,
+              shadowColor: Colors.red.withOpacity(0.45),
+              color: const Color(0xFFFFEBEE),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Column(
+                  children: [
+                    for (final it in visibleItems) ...[
+                      ListTile(
+                        leading: Icon(
+                          _iconForKey(it.key),
+                          color: Colors.grey.shade700,
+                        ),
+                        title: Text(
+                          it.key,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(it.value!),
+                      ),
+                      const Divider(height: 1),
+                    ],
+                  ],
                 ),
-                const Divider(height: 1),
-              ],
-            ],
+              ),
+            ),
             const SizedBox(height: 12),
             // Acciones movidas al AppBar superior derecho
             const SizedBox(height: 12),

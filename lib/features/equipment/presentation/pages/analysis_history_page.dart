@@ -17,6 +17,7 @@ class AnalysisHistoryPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Historial de análisis')),
+      backgroundColor: const Color(0xFFCDE8FF),
       body: SafeArea(
         child: userId == null
             ? const Center(
@@ -98,6 +99,12 @@ class _HistoryList extends StatelessWidget {
         }
 
         return Card(
+          elevation: 6,
+          shadowColor: Colors.red.withOpacity(0.45),
+          color: const Color(0xFFFFEBEE),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
             leading: leading,
             title: Text(a.imageName ?? 'Imagen analizada'),

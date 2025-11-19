@@ -79,129 +79,149 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(equipmentListControllerProvider);
+    final summary = ref.watch(equipmentSummaryProvider);
     final items = state.value ?? [];
     // Métricas de resumen para el encabezado
-    final total = items.length;
-    final countOperativo = items
-        .where((e) => e.status == EquipmentStatus.operativo)
-        .length;
-    final countMantenimiento = items
-        .where((e) => e.status == EquipmentStatus.mantenimiento)
-        .length;
-    final countFueraServicio = items
-        .where((e) => e.status == EquipmentStatus.fueraDeServicio)
-        .length;
-    final countSeguimiento = items
-        .where((e) => e.status == EquipmentStatus.requiereSeguimiento)
-        .length;
+    final total = summary.maybeWhen(
+      data: (s) => s.total,
+      orElse: () => items.length,
+    );
+    final countOperativo = summary.maybeWhen(
+      data: (s) => s.operativo,
+      orElse: () => items
+          .where((e) => e.status == EquipmentStatus.operativo)
+          .length,
+    );
+    final countMantenimiento = summary.maybeWhen(
+      data: (s) => s.mantenimiento,
+      orElse: () => items
+          .where((e) => e.status == EquipmentStatus.mantenimiento)
+          .length,
+    );
+    final countFueraServicio = summary.maybeWhen(
+      data: (s) => s.fueraServicio,
+      orElse: () => items
+          .where((e) => e.status == EquipmentStatus.fueraDeServicio)
+          .length,
+    );
+    final countSeguimiento = summary.maybeWhen(
+      data: (s) => s.seguimiento,
+      orElse: () => items
+          .where((e) => e.status == EquipmentStatus.requiereSeguimiento)
+          .length,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Equipos biomédicos'),
-        actions: [
-          IconButton(
-            tooltip: 'Analizar imagen (IA)',
-            icon: const Icon(Icons.smart_toy_outlined),
-            onPressed: _openImageAnalyzerSheet,
-          ),
-          IconButton(
-            tooltip: 'Historial',
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AnalysisHistoryPage()),
+      backgroundColor: const Color(0xFFCDE8FF), // azul pastel más oscuro
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref
+              .read(equipmentListControllerProvider.notifier)
+              .loadInitial(
+                query: EquipmentQuery(
+                  search: _searchController.text.trim(),
+                  status: _selectedStatus,
+                ),
               );
-            },
-          ),
-          IconButton(
-            tooltip: 'Salir',
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(authControllerProvider.notifier).signOut();
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const SizedBox(height: 4),
-          // Resumen de métricas
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: SummaryBar(
-              total: total,
-              countOperativo: countOperativo,
-              countMantenimiento: countMantenimiento,
-              countFueraServicio: countFueraServicio,
-              countSeguimiento: countSeguimiento,
+        },
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              pinned: false,
+              floating: false,
+              snap: false,
+              title: const Text('Equipos biomédicos'),
+              actions: [
+                IconButton(
+                  tooltip: 'Analizar imagen (IA)',
+                  icon: const Icon(Icons.smart_toy_outlined),
+                  onPressed: _openImageAnalyzerSheet,
+                ),
+                IconButton(
+                  tooltip: 'Salir',
+                  icon: const Icon(Icons.logout),
+                  onPressed: () async {
+                    await ref.read(authControllerProvider.notifier).signOut();
+                  },
+                ),
+              ],
             ),
-          ),
-          StatusFilterBar(
-            selectedStatus: _selectedStatus,
-            total: total,
-            countOperativo: countOperativo,
-            countMantenimiento: countMantenimiento,
-            countFueraServicio: countFueraServicio,
-            countSeguimiento: countSeguimiento,
-            onStatusSelected: (value) {
-              setState(() {
-                _selectedStatus = value;
-              });
-              _triggerSearch();
-            },
-          ),
-          // Analizador movido a bottom sheet desde navbar inferior
-          Expanded(
-            child: state.when(
-              loading: () => ListView.builder(
-                itemCount: 6,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemBuilder: (context, index) => const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: SkeletonCard(),
+            const SliverToBoxAdapter(child: SizedBox(height: 4)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: SummaryBar(
+                  total: total,
+                  countOperativo: countOperativo,
+                  countMantenimiento: countMantenimiento,
+                  countFueraServicio: countFueraServicio,
+                  countSeguimiento: countSeguimiento,
                 ),
               ),
-              error: (e, _) => Center(child: Text('Error: $e')),
+            ),
+            SliverToBoxAdapter(
+              child: StatusFilterBar(
+                selectedStatus: _selectedStatus,
+                total: total,
+                countOperativo: countOperativo,
+                countMantenimiento: countMantenimiento,
+                countFueraServicio: countFueraServicio,
+                countSeguimiento: countSeguimiento,
+                onStatusSelected: (value) {
+                  setState(() {
+                    _selectedStatus = value;
+                  });
+                  _triggerSearch();
+                },
+              ),
+            ),
+            // Contenido principal como slivers para que todo haga scroll
+            state.when(
+              loading: () => SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: SkeletonCard(),
+                  ),
+                  childCount: 6,
+                ),
+              ),
+              error: (e, _) => SliverToBoxAdapter(
+                child: Center(child: Text('Error: $e')),
+              ),
               data: (_) => items.isEmpty
-                  ? EmptyState(
-                      onAdd: () async {
-                        final created = await Navigator.of(context)
-                            .push<Equipment?>(
-                              MaterialPageRoute(
-                                builder: (_) => const EquipmentFormPage(),
-                              ),
-                            );
-                        if (created != null && mounted) {
-                          await ref
-                              .read(equipmentListControllerProvider.notifier)
-                              .loadInitial();
-                        }
-                      },
+                  ? SliverToBoxAdapter(
+                      child: EmptyState(
+                        onAdd: () async {
+                          final created = await Navigator.of(context)
+                              .push<Equipment?>(
+                                MaterialPageRoute(
+                                  builder: (_) => const EquipmentFormPage(),
+                                ),
+                              );
+                          if (created != null && mounted) {
+                            await ref
+                                .read(equipmentListControllerProvider.notifier)
+                                .loadInitial();
+                            ref.invalidate(equipmentSummaryProvider);
+                          }
+                        },
+                      ),
                     )
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        await ref
-                            .read(equipmentListControllerProvider.notifier)
-                            .loadInitial(
-                              query: EquipmentQuery(
-                                search: _searchController.text.trim(),
-                                status: _selectedStatus,
-                              ),
-                            );
-                      },
-                      child: (MediaQuery.of(context).size.width >= 900)
-                          ? GridView.builder(
-                              controller: _scrollController,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    childAspectRatio: 2.8,
-                                  ),
-                              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: items.length,
-                              itemBuilder: (context, index) {
+                  : (MediaQuery.of(context).size.width >= 900)
+                      ? SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                          sliver: SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 2.8,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
                                 final eq = items[index];
                                 return EquipmentCard(
                                   equipment: eq,
@@ -223,6 +243,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                                   .notifier,
                                             )
                                             .replaceItem(result);
+                                        ref.invalidate(equipmentSummaryProvider);
                                       }
                                     }();
                                   },
@@ -280,6 +301,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                                 .notifier,
                                           )
                                           .replaceItem(updated);
+                                      ref.invalidate(equipmentSummaryProvider);
                                     }
                                   },
                                   onDelete: () async {
@@ -304,21 +326,26 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                                 status: _selectedStatus,
                                               ),
                                             );
+                                        ref.invalidate(equipmentSummaryProvider);
                                       }
                                     }
                                   },
                                 );
                               },
-                            )
-                          : ListView.separated(
-                              controller: _scrollController,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: items.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
-                              itemBuilder: (context, index) {
-                                final eq = items[index];
-                                return EquipmentCard(
+                              childCount: items.length,
+                            ),
+                          ),
+                        )
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final eq = items[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                child: EquipmentCard(
                                   equipment: eq,
                                   onTap: () {
                                     () async {
@@ -339,6 +366,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                                   .notifier,
                                             )
                                             .replaceItem(result);
+                                        ref.invalidate(equipmentSummaryProvider);
                                       }
                                     }();
                                   },
@@ -399,6 +427,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                                 .notifier,
                                           )
                                           .replaceItem(updated);
+                                      ref.invalidate(equipmentSummaryProvider);
                                     }
                                   },
                                   onDelete: () async {
@@ -423,16 +452,19 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                                                 status: _selectedStatus,
                                               ),
                                             );
+                                        ref.invalidate(equipmentSummaryProvider);
                                       }
                                     }
                                   },
-                                );
-                              },
-                            ),
-                    ),
+                                ),
+                              );
+                            },
+                            childCount: items.length,
+                          ),
+                        ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Agregar equipo',
@@ -449,6 +481,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage> {
                     status: _selectedStatus,
                   ),
                 );
+            ref.invalidate(equipmentSummaryProvider);
           }
         },
         child: const Icon(Icons.add),

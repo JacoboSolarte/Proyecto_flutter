@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/equipment_status_chip.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/equipment.dart';
 import '../../domain/entities/maintenance.dart';
@@ -20,10 +21,12 @@ class EquipmentHeaderPage extends ConsumerWidget {
     return detail.when(
       loading: () => const Scaffold(
         appBar: _HeaderAppBar(),
+        backgroundColor: Color(0xFFCDE8FF),
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (e, st) => Scaffold(
         appBar: const _HeaderAppBar(),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text('Error cargando equipo: ${e.toString()}'),
@@ -31,6 +34,7 @@ class EquipmentHeaderPage extends ConsumerWidget {
       ),
       data: (eq) => Scaffold(
         appBar: const _HeaderAppBar(),
+        backgroundColor: const Color(0xFFCDE8FF),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -68,7 +72,9 @@ class _HeaderContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Card(
-          elevation: 2,
+          elevation: 6,
+          shadowColor: Colors.red.withOpacity(0.45),
+          color: const Color(0xFFFFEBEE),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -95,7 +101,9 @@ class _HeaderContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Card(
-          elevation: 2,
+          elevation: 6,
+          shadowColor: Colors.red.withOpacity(0.45),
+          color: const Color(0xFFFFEBEE),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -135,7 +143,9 @@ class _MaintenanceSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
-      elevation: 2,
+      elevation: 6,
+      shadowColor: Colors.red.withOpacity(0.45),
+      color: const Color(0xFFFFEBEE),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -175,29 +185,47 @@ class _MaintenanceSection extends StatelessWidget {
                     final nextStr = m.nextMaintenanceDate != null
                         ? formatDate(m.nextMaintenanceDate!)
                         : null;
+                    final isNarrow = MediaQuery.of(context).size.width < 480;
                     return ListTile(
                       leading: Icon(icon),
-                      title: Text('${m.maintenanceType} • $dateStr'),
+                      title: Text(
+                        '${m.maintenanceType} • $dateStr',
+                        style: theme.textTheme.bodyLarge,
+                        softWrap: true,
+                        maxLines: isNarrow ? null : 2,
+                        overflow:
+                            isNarrow ? TextOverflow.visible : TextOverflow.ellipsis,
+                      ),
                       subtitle: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (isNarrow) ...[
+                            const SizedBox(height: 6),
+                            EquipmentStatusChip(status: m.finalStatus),
+                          ],
+                          const SizedBox(height: 8),
                           if (m.description != null &&
                               m.description!.isNotEmpty)
                             Text(
                               m.description!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              maxLines: null,
+                              overflow: TextOverflow.visible,
                             ),
+                          const SizedBox(height: 4),
                           Text('Responsable: ${m.responsible ?? '-'}'),
                           if (nextStr != null)
                             Text('Próximo mantenimiento: $nextStr'),
                         ],
                       ),
-                      trailing: Chip(
-                        label: Text(EquipmentStatus.label(m.finalStatus)),
-                      ),
+                      trailing:
+                          isNarrow ? null : EquipmentStatusChip(status: m.finalStatus),
+                      isThreeLine: true,
+                      dense: false,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 0.0,
+                        vertical: 4.0,
                       ),
                     );
                   },

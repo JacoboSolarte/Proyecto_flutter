@@ -10,9 +10,9 @@ class EquipmentStatusChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final Map<String, Color> colors = {
       EquipmentStatus.operativo: Colors.green,
-      EquipmentStatus.mantenimiento: Colors.orange,
+      EquipmentStatus.mantenimiento: Colors.amber,
       EquipmentStatus.fueraDeServicio: Colors.red,
-      EquipmentStatus.requiereSeguimiento: Colors.amber,
+      EquipmentStatus.requiereSeguimiento: Colors.blueGrey,
     };
     final Color base = colors[status] ?? scheme.primary;
     final Color bg = base.withValues(alpha: 0.15);

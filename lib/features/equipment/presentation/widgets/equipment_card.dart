@@ -24,8 +24,12 @@ class EquipmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isNarrow = screenWidth < 480; // Ajuste móvil: diseños más compactos
     return Card(
-      elevation: 2,
+      elevation: 6,
+      shadowColor: Colors.red.withOpacity(0.45),
+      color: const Color(0xFFFFEBEE), // rojo aún más suave
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
@@ -51,22 +55,37 @@ class EquipmentCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            equipment.name,
-                            style: t.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
-                          ),
+                    if (isNarrow) ...[
+                      // En pantallas estrechas, permitimos que el nombre envuelva sin cortar
+                      Text(
+                        equipment.name,
+                        style: t.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
-                        EquipmentStatusChip(status: equipment.status),
-                      ],
-                    ),
+                        softWrap: true,
+                        maxLines: null,
+                        overflow: TextOverflow.visible,
+                      ),
+                      const SizedBox(height: 6),
+                      EquipmentStatusChip(status: equipment.status),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              equipment.name,
+                              style: t.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                            ),
+                          ),
+                          EquipmentStatusChip(status: equipment.status),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 8,

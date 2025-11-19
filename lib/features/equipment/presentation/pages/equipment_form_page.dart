@@ -10,6 +10,7 @@ import '../../domain/entities/equipment.dart';
 import '../providers/equipment_providers.dart';
 import '../../constants/status.dart';
 import '../../../../data/options.dart';
+import '../widgets/equipment_status_chip.dart';
 
 class EquipmentFormPage extends ConsumerStatefulWidget {
   final Equipment? existing;
@@ -68,6 +69,7 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
     final isEdit = widget.existing != null;
     return Scaffold(
       appBar: AppBar(title: Text(isEdit ? 'Editar equipo' : 'Agregar equipo')),
+      backgroundColor: const Color(0xFFCDE8FF),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -75,165 +77,196 @@ class _EquipmentFormPageState extends ConsumerState<EquipmentFormPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                TextFormField(
-                  controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nombre*'),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Nombre obligatorio';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _brandCtrl,
-                  decoration: const InputDecoration(labelText: 'Marca'),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _modelCtrl,
-                  decoration: const InputDecoration(labelText: 'Modelo'),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _serialCtrl,
-                  decoration: const InputDecoration(labelText: 'Serie'),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _locationCtrl,
-                  decoration: const InputDecoration(labelText: 'Ubicación'),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  initialValue: _status,
-                  items: equipmentStatusOptions
-                      .map(
-                        (s) => DropdownMenuItem(
-                          value: s,
-                          child: Text(EquipmentStatus.label(s)),
+                Card(
+                  elevation: 6,
+                  shadowColor: Colors.red.withOpacity(0.45),
+                  color: const Color(0xFFFFEBEE),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameCtrl,
+                          decoration: const InputDecoration(labelText: 'Nombre*'),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Nombre obligatorio';
+                            return null;
+                          },
                         ),
-                      )
-                      .toList(),
-                  onChanged: (v) =>
-                      setState(() => _status = v ?? EquipmentStatus.operativo),
-                  decoration: const InputDecoration(labelText: 'Estado'),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _vendorCtrl,
-                  decoration: const InputDecoration(labelText: 'Proveedor'),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _notesCtrl,
-                  decoration: const InputDecoration(labelText: 'Notas'),
-                  maxLines: 3,
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _brandCtrl,
+                          decoration: const InputDecoration(labelText: 'Marca'),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _modelCtrl,
+                          decoration: const InputDecoration(labelText: 'Modelo'),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _serialCtrl,
+                          decoration: const InputDecoration(labelText: 'Serie'),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _locationCtrl,
+                          decoration: const InputDecoration(labelText: 'Ubicación'),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          initialValue: _status,
+                          items: equipmentStatusOptions
+                              .map(
+                                (s) => DropdownMenuItem(
+                                  value: s,
+                                  child: Text(EquipmentStatus.label(s)),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) => setState(
+                            () => _status = v ?? EquipmentStatus.operativo,
+                          ),
+                          decoration: const InputDecoration(labelText: 'Estado'),
+                        ),
+                        const SizedBox(height: 8),
+                        EquipmentStatusChip(status: _status),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _vendorCtrl,
+                          decoration: const InputDecoration(labelText: 'Proveedor'),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _notesCtrl,
+                          decoration: const InputDecoration(labelText: 'Notas'),
+                          maxLines: 3,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Imagen (opcional)',
-                    style: Theme.of(context).textTheme.titleMedium,
+                Card(
+                  elevation: 6,
+                  shadowColor: Colors.red.withOpacity(0.45),
+                  color: const Color(0xFFFFEBEE),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                const SizedBox(height: 8),
-                if (isEdit && _existingImageUrl != null) ...[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Imagen actual',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Card(
-                      elevation: 4,
-                      clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Image.network(
-                        _existingImageUrl!,
-                        height: 160,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                // Botones responsivos para evitar overflow horizontal en móviles
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 8,
-                  children: [
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.upload_file),
-                      label: const Text('Seleccionar imagen'),
-                      onPressed: _pickFromFiles,
-                    ),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.photo_camera),
-                      label: const Text('Tomar foto'),
-                      onPressed: kIsWeb ? null : _pickFromCamera,
-                    ),
-                  ],
-                ),
-                if (_imageBytes != null) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Card(
-                      elevation: 4,
-                      clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Image.memory(
-                        _imageBytes!,
-                        height: 160,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stack) {
-                          return Container(
-                            height: 160,
-                            width: double.infinity,
-                            color: Colors.black12,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'Vista previa no soportada en web. Se analizará igualmente.',
-                              textAlign: TextAlign.center,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _imageName ?? 'imagen',
-                          overflow: TextOverflow.ellipsis,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Imagen (opcional)',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => setState(() {
-                          _imageBytes = null;
-                          _imageName = null;
-                          _imageMimeType = null;
-                        }),
-                        icon: const Icon(Icons.delete_outline),
-                        label: const Text('Quitar'),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        if (isEdit && _existingImageUrl != null) ...[
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Imagen actual',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Card(
+                            elevation: 6,
+                            shadowColor: Colors.red.withOpacity(0.45),
+                            clipBehavior: Clip.antiAlias,
+                            color: const Color(0xFFFFEBEE),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Image.network(
+                              _existingImageUrl!,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
+                          children: [
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.upload_file),
+                              label: const Text('Seleccionar imagen'),
+                              onPressed: _pickFromFiles,
+                            ),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.photo_camera),
+                              label: const Text('Tomar foto'),
+                              onPressed: kIsWeb ? null : _pickFromCamera,
+                            ),
+                          ],
+                        ),
+                        if (_imageBytes != null) ...[
+                          const SizedBox(height: 12),
+                          Card(
+                            elevation: 6,
+                            shadowColor: Colors.red.withOpacity(0.45),
+                            clipBehavior: Clip.antiAlias,
+                            color: const Color(0xFFFFEBEE),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Image.memory(
+                              _imageBytes!,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stack) {
+                                return Container(
+                                  height: 160,
+                                  width: double.infinity,
+                                  color: Colors.black12,
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Vista previa no soportada en web. Se analizará igualmente.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _imageName ?? 'imagen',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => setState(() {
+                                  _imageBytes = null;
+                                  _imageName = null;
+                                  _imageMimeType = null;
+                                }),
+                                icon: const Icon(Icons.delete_outline),
+                                label: const Text('Quitar'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ],
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () async {

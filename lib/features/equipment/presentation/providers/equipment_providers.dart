@@ -8,6 +8,24 @@ import '../../domain/usecases/delete_equipment.dart';
 import '../../domain/usecases/get_equipments.dart';
 import '../../domain/usecases/get_equipment_detail.dart';
 import '../../domain/usecases/update_equipment.dart';
+import '../../domain/entities/equipment.dart';
+import '../../constants/status.dart';
+
+class EquipmentSummary {
+  final int total;
+  final int operativo;
+  final int mantenimiento;
+  final int fueraServicio;
+  final int seguimiento;
+
+  const EquipmentSummary({
+    required this.total,
+    required this.operativo,
+    required this.mantenimiento,
+    required this.fueraServicio,
+    required this.seguimiento,
+  });
+}
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -89,4 +107,35 @@ final updateEquipmentUseCaseProvider = Provider<UpdateEquipmentUseCase>((ref) {
 final deleteEquipmentUseCaseProvider = Provider<DeleteEquipmentUseCase>((ref) {
   final repo = ref.watch(equipmentRepositoryProvider);
   return DeleteEquipmentUseCase(repo);
+});
+
+/// Resumen independiente del filtro actual: calcula métricas sobre el conjunto completo
+final equipmentSummaryProvider = FutureProvider<EquipmentSummary>((ref) async {
+  final repo = ref.watch(equipmentRepositoryProvider);
+  // Cargar un conjunto amplio; si el dataset crece, conviene agregar un endpoint de conteo
+  final all = await repo.list(limit: 10000, offset: 0);
+  int operativo = 0, mantenimiento = 0, fuera = 0, seguimiento = 0;
+  for (final e in all) {
+    switch (e.status) {
+      case EquipmentStatus.operativo:
+        operativo++;
+        break;
+      case EquipmentStatus.mantenimiento:
+        mantenimiento++;
+        break;
+      case EquipmentStatus.fueraDeServicio:
+        fuera++;
+        break;
+      case EquipmentStatus.requiereSeguimiento:
+        seguimiento++;
+        break;
+    }
+  }
+  return EquipmentSummary(
+    total: all.length,
+    operativo: operativo,
+    mantenimiento: mantenimiento,
+    fueraServicio: fuera,
+    seguimiento: seguimiento,
+  );
 });
