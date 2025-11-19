@@ -27,9 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Paleta médica Material 3: azul clínico + acento teal
     final _baseScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
-    final colorScheme = _baseScheme.copyWith(
-      secondary: Colors.teal,
-    );
+    final colorScheme = _baseScheme.copyWith(secondary: Colors.teal);
     return MaterialApp(
       title: 'Biomedic',
       debugShowCheckedModeBanner: false,
@@ -37,13 +35,21 @@ class MyApp extends StatelessWidget {
         colorScheme: colorScheme,
         useMaterial3: true,
         // Tipografía moderna (Poppins). En plataformas sin la fuente, hace fallback
-        textTheme: GoogleFonts.poppinsTextTheme().apply(
-          bodyColor: colorScheme.onSurface,
-          displayColor: colorScheme.onSurface,
-        ).copyWith(
-          titleLarge: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
-          titleMedium: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        ),
+        textTheme: GoogleFonts.poppinsTextTheme()
+            .apply(
+              bodyColor: colorScheme.onSurface,
+              displayColor: colorScheme.onSurface,
+            )
+            .copyWith(
+              titleLarge: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w600,
+              ),
+              titleMedium: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
         // Fondo blanco limpio
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarTheme(
@@ -122,7 +128,9 @@ class MyApp extends StatelessWidget {
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
         pageTransitionsTheme: const PageTransitionsTheme(

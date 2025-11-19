@@ -27,7 +27,9 @@ class SummaryBar extends StatelessWidget {
         final padding = EdgeInsets.all(isNarrow ? 10 : 12);
         return Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: padding,
             child: Wrap(
@@ -69,7 +71,9 @@ class SummaryBar extends StatelessWidget {
                 ),
                 _summaryChip(
                   context,
-                  label: EquipmentStatus.label(EquipmentStatus.requiereSeguimiento),
+                  label: EquipmentStatus.label(
+                    EquipmentStatus.requiereSeguimiento,
+                  ),
                   icon: Icons.track_changes,
                   count: countSeguimiento,
                   color: Colors.blueGrey,
@@ -105,7 +109,10 @@ class SummaryBar extends StatelessWidget {
       backgroundColor: bg,
       side: BorderSide(color: border),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 8, vertical: compact ? 2 : 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 6 : 8,
+        vertical: compact ? 2 : 4,
+      ),
     );
   }
 }

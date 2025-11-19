@@ -122,7 +122,10 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
   Future<void> _pickFromCamera() async {
     try {
       final picker = ImagePicker();
-      final xfile = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
+      final xfile = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
       if (xfile == null) return;
       final bytes = await xfile.readAsBytes();
       final name = xfile.name;
@@ -135,23 +138,35 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al tomar foto: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al tomar foto: $e')));
     }
   }
 
   Future<void> _pickFromFiles() async {
     try {
-      final res = await FilePicker.platform.pickFiles(type: FileType.any, withData: true, allowMultiple: false);
-      final file = (res != null && res.files.isNotEmpty) ? res.files.first : null;
+      final res = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        withData: true,
+        allowMultiple: false,
+      );
+      final file = (res != null && res.files.isNotEmpty)
+          ? res.files.first
+          : null;
       final bytes = file?.bytes;
       if (bytes == null || file == null) {
         return;
       }
       final name = file.name;
-      var mime = lookupMimeType(name, headerBytes: bytes) ?? 'application/octet-stream';
+      var mime =
+          lookupMimeType(name, headerBytes: bytes) ??
+          'application/octet-stream';
       if (mime == 'application/octet-stream') {
         final header = bytes.take(12).toList();
-        final asHex = header.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+        final asHex = header
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join();
         if (asHex.startsWith('89504e47')) {
           mime = 'image/png';
         } else if (asHex.startsWith('ffd8ff')) {
@@ -174,7 +189,9 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al seleccionar imagen: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al seleccionar imagen: $e')),
+      );
     }
   }
 
@@ -189,24 +206,95 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
         'mime_type': _imageMimeType ?? 'image/jpeg',
       };
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Selecciona o toma una imagen para analizar')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecciona o toma una imagen para analizar'),
+        ),
+      );
       setState(() => _isAnalyzing = false);
       return;
     }
 
     try {
-      final apiKey = dotenv.maybeGet('GOOGLE_API_KEY') ?? const String.fromEnvironment('GEMINI_API_KEY');
+      // Leer configuración pública de IA desde Supabase (sin secretos)
+      Map<String, dynamic>? aiCfg;
+      try {
+        final container = ProviderScope.containerOf(context, listen: false);
+        final supabase = container.read(supabaseClientProvider);
+        // Intento 1: función con esquema 'config'
+        try {
+          final cfg = await supabase.rpc(
+            'config.get_public_ai_settings',
+            params: {'env_name': 'production'},
+          );
+          if (cfg is List && cfg.isNotEmpty && cfg.first is Map) {
+            aiCfg = Map<String, dynamic>.from(cfg.first as Map);
+          } else if (cfg is Map) {
+            aiCfg = Map<String, dynamic>.from(cfg as Map);
+          }
+        } catch (_) {
+          // Intento 2: función en esquema 'public'
+          try {
+            final cfg2 = await supabase.rpc(
+              'get_public_ai_settings',
+              params: {'env_name': 'production'},
+            );
+            if (cfg2 is List && cfg2.isNotEmpty && cfg2.first is Map) {
+              aiCfg = Map<String, dynamic>.from(cfg2.first as Map);
+            } else if (cfg2 is Map) {
+              aiCfg = Map<String, dynamic>.from(cfg2 as Map);
+            }
+          } catch (_) {}
+        }
+      } catch (_) {
+        // Si falla la lectura, continuamos con valores por defecto
+      }
+
+      // Si no hay cfg pero tienes API key, permitimos análisis en cliente
+      final enabled = aiCfg == null ? true : aiCfg['enabled'] == true;
+      final modelOverride = aiCfg?['model']?.toString();
+      final apiKey =
+          dotenv.maybeGet('GOOGLE_API_KEY') ??
+          const String.fromEnvironment('GEMINI_API_KEY');
+
+      // Procede si hay API key en el cliente; el RPC ajusta modelo y overrides.
       if (apiKey.isNotEmpty) {
         // Hoist navigator & messenger to avoid use of BuildContext across async gaps
         final navigator = Navigator.of(context);
         final messenger = ScaffoldMessenger.of(context);
-        final fb = await _callGeminiDirectFallback(body, apiKey);
+        // Overrides opcionales desde configuración pública
+        final systemPrompt = aiCfg?['system_prompt']?.toString();
+        final baseUrlOverride = aiCfg?['base_url']?.toString();
+        final temperatureOverride = () {
+          final t = aiCfg?['temperature'];
+          if (t == null) return null;
+          if (t is num) return t.toDouble();
+          return double.tryParse(t.toString());
+        }();
+        final maxTokensOverride = () {
+          final m = aiCfg?['max_output_tokens'];
+          if (m == null) return null;
+          if (m is int) return m;
+          return int.tryParse(m.toString());
+        }();
+
+        final fb = await _callGeminiDirectFallback(
+          body,
+          apiKey,
+          modelOverride: modelOverride,
+          systemPrompt: systemPrompt,
+          baseUrlOverride: baseUrlOverride,
+          temperatureOverride: temperatureOverride,
+          maxTokensOverride: maxTokensOverride,
+        );
         final result = Map<String, dynamic>.from(fb['result'] as Map);
         final modelUsed = fb['model_used']?.toString();
         final rawText = fb['raw_text']?.toString();
         final notes = stripOptionsFromNotes(
-          (result['notes']?.toString() ?? result['description']?.toString() ?? '').trim(),
+          (result['notes']?.toString() ??
+                  result['description']?.toString() ??
+                  '')
+              .trim(),
         );
 
         if (!mounted) {
@@ -222,15 +310,19 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
             String? publicUrl;
             try {
               if (_imageBytes != null) {
-                final safeName = _imageName ?? 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-                final path = 'analyses/$userId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
+                final safeName =
+                    _imageName ??
+                    'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                final path =
+                    'analyses/$userId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
                 await supabase.storage
                     .from('images')
                     .uploadBinary(
                       path,
                       _imageBytes!,
                       fileOptions: FileOptions(
-                        contentType: _imageMimeType ?? 'application/octet-stream',
+                        contentType:
+                            _imageMimeType ?? 'application/octet-stream',
                         upsert: true,
                       ),
                     );
@@ -275,7 +367,8 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
                 messenger.showSnackBar(
                   const SnackBar(
                     content: Text(
-                        'Guardado sin imagen: refresca la caché de esquema en Supabase para habilitar image_url.'),
+                      'Guardado sin imagen: refresca la caché de esquema en Supabase para habilitar image_url.',
+                    ),
                   ),
                 );
               } else {
@@ -315,7 +408,11 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Configura GOOGLE_API_KEY para usar análisis 100% IA.')),
+          const SnackBar(
+            content: Text(
+              'IA no disponible: verifica configuración en servidor.',
+            ),
+          ),
         );
         setState(() => _isAnalyzing = false);
         return;
@@ -332,19 +429,27 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
     }
   }
 
-  Future<Map<String, dynamic>> _callGeminiDirectFallback(Map<String, dynamic> body, String apiKey) async {
-    const prompt =
-        'Eres un asistente técnico biomédico. Observa la imagen y determina el tipo genérico del equipo (no la marca ni el modelo). '
-        'Escribe únicamente UN PÁRRAFO en español (120–180 palabras) que explique: 1) qué es y 2) para qué se usa. '
-        'Apóyate explícitamente en lo que se ve: menciona al menos 3 rasgos visibles (por ejemplo, pantalla/controles, puertos/conectores, sondas/accesorios, textos legibles, formas o materiales) '
-        'y cómo esos rasgos justifican la identificación y el uso. Describe brevemente cómo se opera en uso típico y el contexto clínico. '
-        'Evita respuestas genéricas; personaliza la explicación a la imagen. NO incluyas marcas, modelos ni números de serie. '
-        'Si la imagen NO muestra un equipo biomédico, responde exactamente: "No le puedo responder a eso".';
+  Future<Map<String, dynamic>> _callGeminiDirectFallback(
+    Map<String, dynamic> body,
+    String apiKey, {
+    String? modelOverride,
+    String? systemPrompt,
+    String? baseUrlOverride,
+    double? temperatureOverride,
+    int? maxTokensOverride,
+  }) async {
+    final prompt = (systemPrompt != null && systemPrompt.trim().isNotEmpty)
+        ? systemPrompt.trim()
+        : 'Eres un asistente técnico biomédico. Observa la imagen y determina el tipo genérico del equipo (no la marca ni el modelo). '
+              'Escribe únicamente UN PÁRRAFO en español (120–180 palabras) que explique: 1) qué es y 2) para qué se usa. '
+              'Apóyate explícitamente en lo que se ve: menciona al menos 3 rasgos visibles (por ejemplo, pantalla/controles, puertos/conectores, sondas/accesorios, textos legibles, formas o materiales) '
+              'y cómo esos rasgos justifican la identificación y el uso. Describe brevemente cómo se opera en uso típico y el contexto clínico. '
+              'Evita respuestas genéricas; personaliza la explicación a la imagen. NO incluyas marcas, modelos ni números de serie. '
+              'Si la imagen NO muestra un equipo biomédico, responde exactamente: "No le puedo responder a eso".';
 
-    final configuredModel =
-        dotenv.maybeGet('GEMINI_MODEL') ?? const String.fromEnvironment('GEMINI_MODEL');
-    final models = (configuredModel.trim().isNotEmpty)
-        ? [configuredModel.trim()]
+    final configuredModel = (modelOverride ?? '').trim();
+    final models = (configuredModel.isNotEmpty)
+        ? [configuredModel]
         : [
             'gemini-2.0-flash',
             'gemini-2.0-pro',
@@ -367,18 +472,35 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
 
     final parts = [
       {'text': prompt},
-      {'inline_data': {'mime_type': mime, 'data': base64}},
+      {
+        'inline_data': {'mime_type': mime, 'data': base64},
+      },
     ];
     final payload = {
       'contents': [
-        {'role': 'user', 'parts': parts}
+        {'role': 'user', 'parts': parts},
       ],
-      'generationConfig': {'temperature': 0.3, 'responseMimeType': 'text/plain', 'maxOutputTokens': 512},
+      'generationConfig': {
+        'temperature': temperatureOverride ?? 0.3,
+        'responseMimeType': 'text/plain',
+        'maxOutputTokens': maxTokensOverride ?? 512,
+      },
     };
 
     for (final model in models) {
-      final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
-      final resp = await http.post(url, headers: {'content-type': 'application/json'}, body: jsonEncode(payload));
+      final baseUrl =
+          (baseUrlOverride != null && baseUrlOverride.trim().isNotEmpty)
+          ? baseUrlOverride.trim()
+          : 'https://generativelanguage.googleapis.com';
+      final apiBase = baseUrl.endsWith('/v1beta') ? baseUrl : '$baseUrl/v1beta';
+      final url = Uri.parse(
+        '$apiBase/models/$model:generateContent?key=$apiKey',
+      );
+      final resp = await http.post(
+        url,
+        headers: {'content-type': 'application/json'},
+        body: jsonEncode(payload),
+      );
       Map<String, dynamic> data;
       try {
         data = jsonDecode(resp.body) as Map<String, dynamic>;
@@ -425,9 +547,7 @@ class _ImageAnalyzerSheetState extends State<ImageAnalyzerSheet> {
             .replaceAll(RegExp(r'```$'), '');
         final onlyParagraph = stripOptionsFromNotes(clean);
         return {
-          'result': {
-            'notes': onlyParagraph,
-          },
+          'result': {'notes': onlyParagraph},
           'model_used': model,
           'raw_text': raw,
         };
